@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @author fanxuankai
  */
-@ParserFor(Short.class)
+@ParserFor(values = {"java.lang.Short", "short"})
 public class ShortParser implements Parser<Short> {
     @Override
     public Short parser(String s) {

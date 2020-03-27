@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @author fanxuankai
  */
-@ParserFor(Long.class)
+@ParserFor(values = {"java.lang.Long", "long"})
 public class LongParser implements Parser<Long> {
     @Override
     public Long parser(String s) {

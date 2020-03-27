@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @author fanxuankai
  */
-@ParserFor(Double.class)
+@ParserFor(values = {"java.lang.Double", "double"})
 public class DoubleParser implements Parser<Double> {
     @Override
     public Double parser(String s) {

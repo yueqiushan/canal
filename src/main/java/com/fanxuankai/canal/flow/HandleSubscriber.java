@@ -49,9 +49,13 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
         List<EntryWrapper> entryWrapperList = item.getMessageWrapper().getEntryWrapperList();
         entryWrapperList.removeIf(EntryWrapper::isDdl);
         long l = System.currentTimeMillis();
+        int rawRowChangeDataCount = 0;
+        int rowChangeDataCount = 0;
         try {
             for (EntryWrapper entryWrapper : entryWrapperList) {
                 handle(entryWrapper, batchId);
+                rawRowChangeDataCount += entryWrapper.getRawRowDataCount();
+                rowChangeDataCount += entryWrapper.getAllRowDataList().size();
             }
             item.setProcessed(true);
         } catch (HandleException e) {
@@ -59,9 +63,8 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
         } finally {
             submit(item);
         }
-        log.info("{} Handle batchId: {}, rowDataCount: {}, time: {}ms", config.subscriberName, batchId,
-                entryWrapperList.stream().map(o -> o.getAllRowDataList().size()).reduce(Integer::sum).orElse(0),
-                System.currentTimeMillis() - l);
+        log.info("{} Handle batchId: {}, rowDataCount: {}({}), time: {}ms", config.subscriberName, batchId,
+                rowChangeDataCount, rawRowChangeDataCount, System.currentTimeMillis() - l);
         subscription.request(1);
     }
 

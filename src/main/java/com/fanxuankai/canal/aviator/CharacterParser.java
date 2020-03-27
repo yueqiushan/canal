@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @author fanxuankai
  */
-@ParserFor(Character.class)
+@ParserFor(values = {"java.lang.Character", "char"})
 public class CharacterParser implements Parser<Character> {
     @Override
     public Character parser(String s) {

@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @author fanxuankai
  */
-@ParserFor(Boolean.class)
+@ParserFor(values = {"java.lang.Boolean", "boolean"})
 public class BooleanParser implements Parser<Boolean> {
     @Override
     public Boolean parser(String s) {

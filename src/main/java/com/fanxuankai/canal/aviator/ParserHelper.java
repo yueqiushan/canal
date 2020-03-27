@@ -15,7 +15,10 @@ public class ParserHelper {
         Map<Class<?>, ParserFor> scan = ReflectionUtils.scanAnnotation(Parser.class.getPackageName(), ParserFor.class);
         scan.forEach((aClass, parserFor) -> {
             try {
-                PARSER_MAP.put(parserFor.value().getName(), (Parser<?>) aClass.getDeclaredConstructor().newInstance());
+                Object instance = aClass.getDeclaredConstructor().newInstance();
+                for (String value : parserFor.values()) {
+                    PARSER_MAP.put(value, (Parser<?>) instance);
+                }
             } catch (Exception ignored) {
             }
         });

@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @author fanxuankai
  */
-@ParserFor(Byte.class)
+@ParserFor(values = {"java.lang.Byte", "byte"})
 public class ByteParser implements Parser<Byte> {
     @Override
     public Byte parser(String s) {

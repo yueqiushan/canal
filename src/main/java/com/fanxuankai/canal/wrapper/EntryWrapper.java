@@ -13,6 +13,9 @@ import java.util.List;
 public class EntryWrapper implements Serializable {
     private CanalEntry.Entry raw;
     private CanalEntry.RowChange rowChange;
+    /**
+     * 可变集合
+     */
     @Getter
     private List<CanalEntry.RowData> allRowDataList;
 
@@ -48,6 +51,13 @@ public class EntryWrapper implements Serializable {
 
     public CanalEntry.EventType getEventType() {
         return raw.getHeader().getEventType();
+    }
+
+    /**
+     * 原始数据行数
+     */
+    public int getRawRowDataCount() {
+        return rowChange.getRowDatasCount();
     }
 
 }

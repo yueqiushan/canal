@@ -11,5 +11,8 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ParserFor {
-    Class<?> value();
+    /**
+     * class 名
+     */
+    String[] values();
 }

@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @author fanxuankai
  */
-@ParserFor(Integer.class)
+@ParserFor(values = {"java.lang.Integer", "int"})
 public class IntegerParser implements Parser<Integer> {
     @Override
     public Integer parser(String s) {

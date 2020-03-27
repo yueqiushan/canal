@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * @author fanxuankai
  */
-@ParserFor(Float.class)
+@ParserFor(values = {"java.lang.Float", "float"})
 public class FloatParser implements Parser<Float> {
     @Override
     public Float parser(String s) {
