@@ -55,7 +55,7 @@ canal:
   # 间隔
   interval-millis: 1000
   # 批次数量
-  batch-size: 1000000
+  batch-size: 100
   # 打印日志
   show-log: false
   # 打印数据明细日志
