@@ -1,6 +1,7 @@
 package com.fanxuankai.canal.redis;
 
 import com.fanxuankai.canal.annotation.CombineKey;
+import com.fanxuankai.canal.annotation.Filter;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -41,8 +42,8 @@ public @interface Redis {
     CombineKey[] combineKeys() default {};
 
     /**
-     * Google Aviator 表达式
+     * 过滤
      */
-    String aviatorExpression() default "";
+    Filter filter() default @Filter;
 
 }

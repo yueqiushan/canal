@@ -63,3 +63,7 @@ canal:
   # 格式化数据明细日志
   format-row-change-log: false
 ```
+
+### 常见问题
+- 已有实例建立了 Canal 连接？
+    - 清除 Redis 标记重启即可, key 的格式为 Canal.ServiceCache.服务名.CanalRunning

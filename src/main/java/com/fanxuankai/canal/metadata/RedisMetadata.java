@@ -19,7 +19,7 @@ public class RedisMetadata {
     private boolean idAsField;
     private List<String> keys;
     private List<CombineKey> combineKeys;
-    private String aviatorExpression;
+    private FilterMetadata filterMetadata;
 
     public RedisMetadata(Redis redis) {
         this.enable = redis.enable();
@@ -27,7 +27,7 @@ public class RedisMetadata {
         this.idAsField = redis.idAsField();
         this.keys = Arrays.asList(redis.uniqueKeys());
         this.combineKeys = Arrays.asList(redis.combineKeys());
-        this.aviatorExpression = redis.aviatorExpression();
+        this.filterMetadata = new FilterMetadata(redis.filter());
     }
 
 }

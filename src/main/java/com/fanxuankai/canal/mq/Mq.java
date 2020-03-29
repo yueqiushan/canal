@@ -1,6 +1,7 @@
 package com.fanxuankai.canal.mq;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
+import com.fanxuankai.canal.annotation.Filter;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -33,7 +34,7 @@ public @interface Mq {
     CanalEntry.EventType[] eventTypes() default {INSERT, DELETE, UPDATE};
 
     /**
-     * Google Aviator 表达式
+     * 过滤
      */
-    String aviatorExpression() default "";
+    Filter filter() default @Filter;
 }

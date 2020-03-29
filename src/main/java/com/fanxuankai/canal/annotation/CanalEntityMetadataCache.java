@@ -20,7 +20,7 @@ import java.util.Map;
 public class CanalEntityMetadataCache {
 
     private static final List<CanalEntityMetadata> ALL_METADATA = Lists.newArrayList();
-    private static final Map<String, CanalEntityMetadata> DATA_BY_CLASS = Maps.newHashMap();
+    private static final Map<Class<?>, CanalEntityMetadata> DATA_BY_CLASS = Maps.newHashMap();
     private static final Map<TableMetadata, CanalEntityMetadata> DATA_BY_TABLE = Maps.newHashMap();
 
     public static List<CanalEntityMetadata> getAllMetadata() {
@@ -28,7 +28,7 @@ public class CanalEntityMetadataCache {
     }
 
     public static CanalEntityMetadata getMetadata(Class<?> clazz) {
-        return DATA_BY_CLASS.get(clazz.getName());
+        return DATA_BY_CLASS.get(clazz);
     }
 
     public static CanalEntityMetadata getMetadata(TableMetadata tableMetadata) {
@@ -80,7 +80,7 @@ public class CanalEntityMetadataCache {
                 CanalEntity canalEntity = entry.getValue();
                 CanalEntityMetadata metadata = new CanalEntityMetadata(canalEntity, aClass);
                 ALL_METADATA.add(metadata);
-                DATA_BY_CLASS.put(aClass.getName(), metadata);
+                DATA_BY_CLASS.put(aClass, metadata);
             }
         }
     }

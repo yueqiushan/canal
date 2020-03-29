@@ -27,12 +27,11 @@ public abstract class AbstractMqHandler extends AbstractHandler {
     public AbstractMqHandler() {
     }
 
-    protected static void filterEntryRowData(EntryWrapper entryWrapper, boolean filterBeforeColumn) {
-        filterEntryRowData(entryWrapper, metadata -> metadata.getMqMetadata().getAviatorExpression(),
-                filterBeforeColumn);
+    protected void filterEntryRowData(EntryWrapper entryWrapper, boolean filterBeforeColumn) {
+        filterEntryRowData(entryWrapper, metadata -> metadata.getMqMetadata().getFilterMetadata(), filterBeforeColumn);
     }
 
-    protected static String routingKey(EntryWrapper entryWrapper, String eventType) {
+    protected String routingKey(EntryWrapper entryWrapper, String eventType) {
         CanalEntityMetadata entityMetadata = CanalEntityMetadataCache.getMetadata(entryWrapper);
         MqMetadata metadata = entityMetadata.getMqMetadata();
         if (StringUtils.isNotBlank(metadata.getName())) {
@@ -43,11 +42,11 @@ public abstract class AbstractMqHandler extends AbstractHandler {
                 tableMetadata.getName(), eventType);
     }
 
-    private static String name(String schema, String table, String eventType) {
+    private String name(String schema, String table, String eventType) {
         return String.format("%s.%s.%s.%s", CANAL_2_MQ, schema, table, eventType);
     }
 
-    private static String customName(String queue, String eventType) {
+    private String customName(String queue, String eventType) {
         return String.format("%s.%s.%s", CANAL_2_MQ, queue, eventType);
     }
 

@@ -17,12 +17,12 @@ public class MqMetadata {
     private boolean enable;
     private String name;
     private List<CanalEntry.EventType> eventTypes;
-    private String aviatorExpression;
+    private FilterMetadata filterMetadata;
 
     public MqMetadata(Mq mq) {
         this.enable = mq.enable();
         this.name = mq.name();
         this.eventTypes = Arrays.asList(mq.eventTypes());
-        this.aviatorExpression = mq.aviatorExpression();
+        this.filterMetadata = new FilterMetadata(mq.filter());
     }
 }

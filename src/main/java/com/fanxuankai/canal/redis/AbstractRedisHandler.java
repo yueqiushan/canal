@@ -23,17 +23,17 @@ public abstract class AbstractRedisHandler extends AbstractHandler {
         this.redisTemplate = redisTemplate;
     }
 
-    protected static void filterEntryRowData(EntryWrapper entryWrapper, boolean filterBeforeColumn) {
-        filterEntryRowData(entryWrapper, metadata -> metadata.getRedisMetadata().getAviatorExpression(),
+    protected void filterEntryRowData(EntryWrapper entryWrapper, boolean filterBeforeColumn) {
+        filterEntryRowData(entryWrapper, metadata -> metadata.getRedisMetadata().getFilterMetadata(),
                 filterBeforeColumn);
     }
 
-    protected static String keyOf(EntryWrapper entryWrapper) {
+    protected String keyOf(EntryWrapper entryWrapper) {
         TableMetadata tableMetadata = CanalEntityMetadataCache.getTableMetadata(entryWrapper);
         return RedisUtil.key(tableMetadata.getSchema(), tableMetadata.getName());
     }
 
-    protected static String keyOf(EntryWrapper entryWrapper, String suffix) {
+    protected String keyOf(EntryWrapper entryWrapper, String suffix) {
         CanalEntityMetadata canalEntityMetadata = CanalEntityMetadataCache.getMetadata(entryWrapper);
         RedisMetadata redisMetadata = canalEntityMetadata.getRedisMetadata();
         if (StringUtils.isNotBlank(redisMetadata.getKey())) {

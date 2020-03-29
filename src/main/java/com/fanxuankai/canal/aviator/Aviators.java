@@ -6,6 +6,8 @@ import com.google.common.base.CaseFormat;
 import com.googlecode.aviator.AviatorEvaluator;
 import com.googlecode.aviator.Expression;
 import com.googlecode.aviator.exception.ExpressionSyntaxErrorException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.convert.ConversionService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,9 +18,11 @@ import java.util.stream.Collectors;
 /**
  * @author fanxuankai
  */
+@Slf4j
 public class Aviators {
 
     private static final Map<String, Map<String, Class<?>>> FIELDS_TYPE_CLASS_MAP = new ConcurrentHashMap<>();
+    private static final ConversionService CONVERSION_SERVICE = Conversions.getInstance();
 
     /**
      * aviator 执行
@@ -49,7 +53,7 @@ public class Aviators {
         for (Map.Entry<String, String> entry : columnMap.entrySet()) {
             String name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, entry.getKey());
             Class<?> fieldType = allFieldsType.get(name);
-            map.put(name, ParserHelper.parser(fieldType, entry.getValue()));
+            map.put(name, CONVERSION_SERVICE.convert(entry.getValue(), fieldType));
         }
         return map;
     }
