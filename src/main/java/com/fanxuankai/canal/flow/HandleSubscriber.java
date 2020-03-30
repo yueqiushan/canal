@@ -54,8 +54,11 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
         int rowChangeDataCount = 0;
         try {
             for (EntryWrapper entryWrapper : entryWrapperList) {
-                handle(entryWrapper, batchId);
                 rawRowChangeDataCount += entryWrapper.getRawRowDataCount();
+                if (config.skip) {
+                    continue;
+                }
+                handle(entryWrapper, batchId);
                 rowChangeDataCount += entryWrapper.getAllRowDataList().size();
             }
             item.setProcessed(true);
@@ -64,7 +67,8 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
         } finally {
             submit(item);
         }
-        log.info("{} Handle batchId: {}, rowDataCount: {}({}), time: {}ms", config.subscriberName, batchId,
+        String handle = config.skip ? "Skip Handle" : "Handle";
+        log.info("{} {} batchId: {}, rowDataCount: {}({}), time: {}ms", config.subscriberName, handle, batchId,
                 rowChangeDataCount, rawRowChangeDataCount, System.currentTimeMillis() - l);
         subscription.request(1);
     }
@@ -140,6 +144,7 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
         private RedisTemplate<String, Object> redisTemplate;
         private String logfileOffsetPrefix;
         private String subscriberName;
+        private boolean skip;
     }
 
     @Data

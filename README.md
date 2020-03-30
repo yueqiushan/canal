@@ -63,11 +63,8 @@ canal:
   show-row-change: false
   # 格式化数据明细日志
   format-row-change-log: false
-  # 开启 Redis 缓存, 如果设置该值会覆盖 EnableCanal 注解
-  # 如果需要全量同步到 Redis, 可以将初 Redis 除外全部禁用, 同步完成后再按需开启 
-  enable-redis:
-  # 开启 MQ, 如果设置该值会覆盖 EnableCanal 注解
-  enable-mq:
+  # MQ 跳过处理, 适用场景: Redis 全量同步时, MQ 跳过
+  # skip-mq: true
 ```
 
 ### 常见问题

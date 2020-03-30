@@ -48,7 +48,6 @@ public class CanalConfigurationImporter implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         CanalEntityMetadataCache.load();
         CanalEntityMetadataCache.from(canalConfig);
-        EnableCanalAttributes.from(canalConfig);
         name = EnableCanalAttributes.getName();
         key = RedisUtil.customKey(RedisKeyPrefix.SERVICE_CACHE, name + SEPARATOR + CANAL_RUNNING_TAG);
         Boolean setCanalRunning = redisTemplate.opsForValue().setIfAbsent(key, true);

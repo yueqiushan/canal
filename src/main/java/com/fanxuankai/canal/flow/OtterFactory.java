@@ -13,10 +13,7 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -99,6 +96,7 @@ public class OtterFactory {
                             .logfileOffsetPrefix(RABBIT_MQ)
                             .canalConfig(canalConfig)
                             .subscriberName(name)
+                            .skip(Objects.equals(canalConfig.getSkipMq(), Boolean.TRUE))
                             .build();
                     return OtterFlow.withFlow(connectConfig, subscriberConfig);
                 });
@@ -121,6 +119,7 @@ public class OtterFactory {
                             .logfileOffsetPrefix(XXL_MQ)
                             .canalConfig(canalConfig)
                             .subscriberName(name)
+                            .skip(Objects.equals(canalConfig.getSkipMq(), Boolean.TRUE))
                             .build();
                     return OtterFlow.withFlow(connectConfig, subscriberConfig);
                 });

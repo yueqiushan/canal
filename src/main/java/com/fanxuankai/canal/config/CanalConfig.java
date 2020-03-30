@@ -75,14 +75,9 @@ public class CanalConfig {
     private Boolean formatRowChangeLog = Boolean.FALSE;
 
     /**
-     * 开启 Redis 缓存, 如果设置该值会覆盖 EnableCanal 注解
+     * MQ 跳过处理
      */
-    private Boolean enableRedis;
-
-    /**
-     * 开启 MQ, 如果设置该值会覆盖 EnableCanal 注解
-     */
-    private Boolean enableMq;
+    private Boolean skipMq;
 
     @Data
     public static class Cluster {

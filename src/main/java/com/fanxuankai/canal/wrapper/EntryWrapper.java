@@ -14,7 +14,7 @@ public class EntryWrapper implements Serializable {
     private CanalEntry.Entry raw;
     private CanalEntry.RowChange rowChange;
     /**
-     * 可变集合
+     * RowChange 所有数据, 可变集合, 支持数据过滤
      */
     @Getter
     private List<CanalEntry.RowData> allRowDataList;
