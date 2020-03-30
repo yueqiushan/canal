@@ -16,9 +16,8 @@ public class EraseHandler extends AbstractRedisHandler {
     }
 
     @Override
-    public void handle(EntryWrapper entryWrapper) {
-        String key = keyOf(entryWrapper);
-        Set<String> keys = redisTemplate.keys(key + "*");
+    public void doHandle(EntryWrapper entryWrapper) {
+        Set<String> keys = redisTemplate.keys(keyOf(entryWrapper) + "*");
         if (CollectionUtils.isEmpty(keys)) {
             return;
         }

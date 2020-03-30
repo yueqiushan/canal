@@ -14,4 +14,9 @@ public class CommonUtils {
         return columnList.stream()
                 .collect(Collectors.toMap(CanalEntry.Column::getName, CanalEntry.Column::getValue));
     }
+
+    public static Map<String, CanalEntry.Column> toColumnMap(List<CanalEntry.Column> columnList) {
+        return columnList.stream()
+                .collect(Collectors.toMap(CanalEntry.Column::getName, o -> o));
+    }
 }

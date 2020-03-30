@@ -11,10 +11,12 @@ import com.xxl.mq.client.producer.XxlMqProducer;
 public class XxlMqDeleteHandler extends AbstractMqHandler {
 
     @Override
-    public void handle(EntryWrapper entryWrapper) {
-        filterEntryRowData(entryWrapper, true);
+    public void doHandle(EntryWrapper entryWrapper) {
+        String topic = routingKey(entryWrapper, EventTypeConstants.DELETE);
         entryWrapper.getAllRowDataList()
-                .forEach(rowData -> XxlMqProducer.produce(new XxlMqMessage(routingKey(entryWrapper,
-                        EventTypeConstants.DELETE), json(rowData.getBeforeColumnsList()))));
+                .stream()
+                .map(rowData -> json(rowData.getBeforeColumnsList()))
+                .map(json -> new XxlMqMessage(topic, json))
+                .forEach(XxlMqProducer::produce);
     }
 }

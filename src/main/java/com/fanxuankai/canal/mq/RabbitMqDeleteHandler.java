@@ -14,10 +14,11 @@ public class RabbitMqDeleteHandler extends AbstractMqHandler {
     }
 
     @Override
-    public void handle(EntryWrapper entryWrapper) {
-        String s = routingKey(entryWrapper, EventTypeConstants.DELETE);
-        filterEntryRowData(entryWrapper, true);
-        entryWrapper.getAllRowDataList().forEach(rowData -> amqpTemplate.convertAndSend(s,
-                json(rowData.getBeforeColumnsList())));
+    public void doHandle(EntryWrapper entryWrapper) {
+        String routingKey = routingKey(entryWrapper, EventTypeConstants.DELETE);
+        entryWrapper.getAllRowDataList()
+                .stream()
+                .map(rowData -> json(rowData.getBeforeColumnsList()))
+                .forEach(json -> amqpTemplate.convertAndSend(routingKey, json));
     }
 }

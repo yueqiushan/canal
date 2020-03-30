@@ -11,10 +11,12 @@ import com.xxl.mq.client.producer.XxlMqProducer;
 public class XxlMqInsertHandler extends AbstractMqHandler {
 
     @Override
-    public void handle(EntryWrapper entryWrapper) {
-        String s = routingKey(entryWrapper, EventTypeConstants.INSERT);
-        filterEntryRowData(entryWrapper, false);
-        entryWrapper.getAllRowDataList().forEach(rowData -> XxlMqProducer.produce(new XxlMqMessage(s,
-                json(rowData.getAfterColumnsList()))));
+    public void doHandle(EntryWrapper entryWrapper) {
+        String topic = routingKey(entryWrapper, EventTypeConstants.INSERT);
+        entryWrapper.getAllRowDataList()
+                .stream()
+                .map(rowData -> json(rowData.getAfterColumnsList()))
+                .map(json -> new XxlMqMessage(topic, json))
+                .forEach(XxlMqProducer::produce);
     }
 }

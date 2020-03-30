@@ -50,16 +50,13 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
         List<EntryWrapper> entryWrapperList = item.getMessageWrapper().getEntryWrapperList();
         entryWrapperList.removeIf(EntryWrapper::isDdl);
         long l = System.currentTimeMillis();
-        int rawRowChangeDataCount = 0;
         int rowChangeDataCount = 0;
         try {
-            for (EntryWrapper entryWrapper : entryWrapperList) {
-                rawRowChangeDataCount += entryWrapper.getRawRowDataCount();
-                if (config.skip) {
-                    continue;
+            if (!config.skip) {
+                for (EntryWrapper entryWrapper : entryWrapperList) {
+                    handle(entryWrapper, batchId);
+                    rowChangeDataCount += entryWrapper.getAllRowDataList().size();
                 }
-                handle(entryWrapper, batchId);
-                rowChangeDataCount += entryWrapper.getAllRowDataList().size();
             }
             item.setProcessed(true);
         } catch (HandleException e) {
@@ -69,7 +66,7 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
         }
         String handle = config.skip ? "Skip Handle" : "Handle";
         log.info("{} {} batchId: {}, rowDataCount: {}({}), time: {}ms", config.subscriberName, handle, batchId,
-                rowChangeDataCount, rawRowChangeDataCount, System.currentTimeMillis() - l);
+                rowChangeDataCount, item.getAllRawRowDataCount(), System.currentTimeMillis() - l);
         subscription.request(1);
     }
 
@@ -106,9 +103,7 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
         }
         long l = System.currentTimeMillis();
         try {
-            if (handler.canHandle(entryWrapper)) {
-                handler.handle(entryWrapper);
-            }
+            handler.handle(entryWrapper);
         } catch (Exception e) {
             throw new HandleException(e);
         }

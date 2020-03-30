@@ -14,10 +14,18 @@ public class ContextWrapper {
     @Getter
     @Setter
     private boolean processed;
+    @Getter
+    private int allRawRowDataCount;
 
     public ContextWrapper(Context raw) {
         this.raw = raw;
         this.messageWrapper = new MessageWrapper(raw.getMessage());
+        this.allRawRowDataCount = this.messageWrapper.getEntryWrapperList()
+                .stream()
+                .map(EntryWrapper::getRawRowDataCount)
+                .reduce(Integer::sum)
+                .orElse(0);
+
     }
 
     public void confirm() {

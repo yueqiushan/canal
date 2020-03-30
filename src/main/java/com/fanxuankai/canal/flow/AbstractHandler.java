@@ -15,7 +15,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 抽象处理器
@@ -24,22 +24,37 @@ import java.util.function.Function;
  */
 public abstract class AbstractHandler implements Handler {
 
-    protected void filterEntryRowData(EntryWrapper entryWrapper,
-                                      Function<CanalEntityMetadata, FilterMetadata> filterMetadataFunction,
-                                      boolean filterBeforeColumn) {
-        CanalEntityMetadata metadata = CanalEntityMetadataCache.getMetadata(entryWrapper);
-        FilterMetadata filterMetadata = filterMetadataFunction.apply(metadata);
-        Class<?> typeClass = metadata.getTypeClass();
-        entryWrapper.getAllRowDataList()
-                .removeIf(rowData -> {
-                    List<CanalEntry.Column> columnsList;
-                    if (filterBeforeColumn) {
-                        columnsList = rowData.getBeforeColumnsList();
-                    } else {
-                        columnsList = rowData.getAfterColumnsList();
-                    }
-                    return shouldRemove(columnsList, filterMetadata, typeClass);
-                });
+    /**
+     * 是否能够处理
+     *
+     * @param entryWrapper 数据
+     * @return true or false
+     */
+    protected abstract boolean canHandle(EntryWrapper entryWrapper);
+
+    /**
+     * 过滤
+     *
+     * @param metadata CanalEntity 注解元数据
+     * @return Filter 注解元数据
+     */
+    protected abstract FilterMetadata filter(CanalEntityMetadata metadata);
+
+    /**
+     * 处理
+     *
+     * @param entryWrapper 数据
+     */
+    protected abstract void doHandle(EntryWrapper entryWrapper);
+
+    @Override
+    public void handle(EntryWrapper entryWrapper) {
+        if (canHandle(entryWrapper)) {
+            CanalEntityMetadata metadata = CanalEntityMetadataCache.getMetadata(entryWrapper);
+            FilterMetadata filterMetadata = filter(metadata);
+            filterEntryRowData(entryWrapper, metadata, filterMetadata);
+            doHandle(entryWrapper);
+        }
     }
 
     protected String json(List<CanalEntry.Column> columnList) {
@@ -55,21 +70,48 @@ public abstract class AbstractHandler implements Handler {
         return new JSONArray(list).toJSONString();
     }
 
-    private boolean shouldRemove(List<CanalEntry.Column> columnList, FilterMetadata filterMetadata,
-                                 Class<?> typeClass) {
+    private void filterEntryRowData(EntryWrapper entryWrapper,
+                                    CanalEntityMetadata metadata,
+                                    FilterMetadata filterMetadata) {
+        List<CanalEntry.RowData> rowDataList =
+                entryWrapper.getAllRowDataList()
+                        .stream()
+                        .filter(rowData -> filterRowData(rowData, filterMetadata, metadata.getTypeClass()))
+                        .collect(Collectors.toList());
+        entryWrapper.setAllRowDataList(rowDataList);
+    }
+
+    private boolean filterRowData(CanalEntry.RowData rowData, FilterMetadata filterMetadata, Class<?> typeClass) {
+        Map<String, CanalEntry.Column> beforeColumnMap = CommonUtils.toColumnMap(rowData.getBeforeColumnsList());
+        Map<String, CanalEntry.Column> afterColumnMap = CommonUtils.toColumnMap(rowData.getAfterColumnsList());
         List<String> updatedFields = filterMetadata.getUpdatedFields();
         if (!CollectionUtils.isEmpty(updatedFields)) {
-            boolean allMatch = columnList.stream()
-                    .filter(column -> updatedFields.contains(column.getName()))
-                    .allMatch(CanalEntry.Column::getUpdated);
-            if (!allMatch) {
-                return true;
+            // 新增或者修改
+            if (!CollectionUtils.isEmpty(afterColumnMap)) {
+                boolean allMatch = afterColumnMap.entrySet()
+                        .stream()
+                        .filter(entry -> updatedFields.contains(entry.getKey()))
+                        .allMatch(entry -> {
+                            CanalEntry.Column oldColumn = beforeColumnMap.get(entry.getKey());
+                            return oldColumn == null || entry.getValue().getUpdated();
+                        });
+                if (!allMatch) {
+                    return false;
+                }
             }
+            // 删除默认为已全部修改
         }
         String aviatorExpression = filterMetadata.getAviatorExpression();
         if (StringUtils.isNotBlank(aviatorExpression)) {
-            return !Aviators.exec(columnList, aviatorExpression, typeClass);
+            // 新增或者修改
+            if (!CollectionUtils.isEmpty(afterColumnMap)) {
+                return Aviators.exec(CommonUtils.toMap(rowData.getAfterColumnsList()), aviatorExpression, typeClass);
+            }
+            // 删除
+            if (!CollectionUtils.isEmpty(beforeColumnMap)) {
+                return Aviators.exec(CommonUtils.toMap(rowData.getBeforeColumnsList()), aviatorExpression, typeClass);
+            }
         }
-        return false;
+        return true;
     }
 }

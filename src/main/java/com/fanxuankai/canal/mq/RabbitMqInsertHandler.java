@@ -14,10 +14,11 @@ public class RabbitMqInsertHandler extends AbstractMqHandler {
     }
 
     @Override
-    public void handle(EntryWrapper entryWrapper) {
-        String s = routingKey(entryWrapper, EventTypeConstants.INSERT);
-        filterEntryRowData(entryWrapper, false);
-        entryWrapper.getAllRowDataList().forEach(rowData -> amqpTemplate.convertAndSend(s,
-                json(rowData.getAfterColumnsList())));
+    public void doHandle(EntryWrapper entryWrapper) {
+        String routingKey = routingKey(entryWrapper, EventTypeConstants.INSERT);
+        entryWrapper.getAllRowDataList()
+                .stream()
+                .map(rowData -> json(rowData.getAfterColumnsList()))
+                .forEach(json -> amqpTemplate.convertAndSend(routingKey, json));
     }
 }

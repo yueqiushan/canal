@@ -25,14 +25,13 @@ public class InsertOrUpdateHandler extends AbstractRedisHandler {
     }
 
     @Override
-    public void handle(EntryWrapper entryWrapper) {
+    public void doHandle(EntryWrapper entryWrapper) {
         RedisMetadata redisMetadata = CanalEntityMetadataCache.getRedisMetadata(entryWrapper);
         List<String> keys = redisMetadata.getKeys();
         boolean idAsField = redisMetadata.isIdAsField();
         List<CombineKey> combineKeys = redisMetadata.getCombineKeys();
         Map<String, Map<String, Object>> map = Maps.newHashMap();
         String key = keyOf(entryWrapper);
-        filterEntryRowData(entryWrapper, false);
         entryWrapper.getAllRowDataList().forEach(rowData -> {
             Map<String, String> value = CommonUtils.toMap(rowData.getAfterColumnsList());
             rowData.getAfterColumnsList()

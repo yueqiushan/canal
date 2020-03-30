@@ -4,6 +4,7 @@ import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.constants.QueuePrefixConstants;
 import com.fanxuankai.canal.flow.AbstractHandler;
 import com.fanxuankai.canal.metadata.CanalEntityMetadata;
+import com.fanxuankai.canal.metadata.FilterMetadata;
 import com.fanxuankai.canal.metadata.MqMetadata;
 import com.fanxuankai.canal.metadata.TableMetadata;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
@@ -27,8 +28,15 @@ public abstract class AbstractMqHandler extends AbstractHandler {
     public AbstractMqHandler() {
     }
 
-    protected void filterEntryRowData(EntryWrapper entryWrapper, boolean filterBeforeColumn) {
-        filterEntryRowData(entryWrapper, metadata -> metadata.getMqMetadata().getFilterMetadata(), filterBeforeColumn);
+    @Override
+    public boolean canHandle(EntryWrapper entryWrapper) {
+        CanalEntityMetadata metadata = CanalEntityMetadataCache.getMetadata(entryWrapper);
+        return metadata != null && metadata.getMqMetadata().isEnable();
+    }
+
+    @Override
+    protected FilterMetadata filter(CanalEntityMetadata metadata) {
+        return metadata.getMqMetadata().getFilterMetadata();
     }
 
     protected String routingKey(EntryWrapper entryWrapper, String eventType) {
@@ -50,9 +58,4 @@ public abstract class AbstractMqHandler extends AbstractHandler {
         return String.format("%s.%s.%s", CANAL_2_MQ, queue, eventType);
     }
 
-    @Override
-    public boolean canHandle(EntryWrapper entryWrapper) {
-        CanalEntityMetadata metadata = CanalEntityMetadataCache.getMetadata(entryWrapper);
-        return metadata != null && metadata.getMqMetadata().isEnable();
-    }
 }

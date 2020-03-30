@@ -27,14 +27,13 @@ public class DeleteHandler extends AbstractRedisHandler {
     }
 
     @Override
-    public void handle(EntryWrapper entryWrapper) {
+    public void doHandle(EntryWrapper entryWrapper) {
         RedisMetadata redisMetadata = CanalEntityMetadataCache.getRedisMetadata(entryWrapper);
         List<String> keys = redisMetadata.getKeys();
         List<CombineKey> combineKeys = redisMetadata.getCombineKeys();
         String key = keyOf(entryWrapper);
         HashOperations<String, Object, Object> ops = redisTemplate.opsForHash();
         Map<String, List<String>> hashKeyMap = Maps.newHashMap();
-        filterEntryRowData(entryWrapper, true);
         entryWrapper.getAllRowDataList()
                 .forEach(rowData -> {
                     rowData.getBeforeColumnsList()

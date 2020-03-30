@@ -3,6 +3,7 @@ package com.fanxuankai.canal.redis;
 import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.flow.AbstractHandler;
 import com.fanxuankai.canal.metadata.CanalEntityMetadata;
+import com.fanxuankai.canal.metadata.FilterMetadata;
 import com.fanxuankai.canal.metadata.RedisMetadata;
 import com.fanxuankai.canal.metadata.TableMetadata;
 import com.fanxuankai.canal.util.RedisUtils;
@@ -23,9 +24,15 @@ public abstract class AbstractRedisHandler extends AbstractHandler {
         this.redisTemplate = redisTemplate;
     }
 
-    protected void filterEntryRowData(EntryWrapper entryWrapper, boolean filterBeforeColumn) {
-        filterEntryRowData(entryWrapper, metadata -> metadata.getRedisMetadata().getFilterMetadata(),
-                filterBeforeColumn);
+    @Override
+    public boolean canHandle(EntryWrapper entryWrapper) {
+        CanalEntityMetadata metadata = CanalEntityMetadataCache.getMetadata(entryWrapper);
+        return metadata != null && metadata.getRedisMetadata().isEnable();
+    }
+
+    @Override
+    protected FilterMetadata filter(CanalEntityMetadata metadata) {
+        return metadata.getRedisMetadata().getFilterMetadata();
     }
 
     protected String keyOf(EntryWrapper entryWrapper) {
@@ -43,9 +50,4 @@ public abstract class AbstractRedisHandler extends AbstractHandler {
         return RedisUtils.key(tableMetadata.getSchema(), tableMetadata.getName(), suffix);
     }
 
-    @Override
-    public boolean canHandle(EntryWrapper entryWrapper) {
-        CanalEntityMetadata metadata = CanalEntityMetadataCache.getMetadata(entryWrapper);
-        return metadata != null && metadata.getRedisMetadata().isEnable();
-    }
 }

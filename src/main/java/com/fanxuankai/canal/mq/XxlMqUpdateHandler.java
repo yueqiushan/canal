@@ -11,10 +11,12 @@ import com.xxl.mq.client.producer.XxlMqProducer;
 public class XxlMqUpdateHandler extends AbstractMqHandler {
 
     @Override
-    public void handle(EntryWrapper entryWrapper) {
-        String s = routingKey(entryWrapper, EventTypeConstants.UPDATE);
-        filterEntryRowData(entryWrapper, false);
-        entryWrapper.getAllRowDataList().forEach(rowData -> XxlMqProducer.produce(new XxlMqMessage(s,
-                json(rowData.getBeforeColumnsList(), rowData.getAfterColumnsList()))));
+    public void doHandle(EntryWrapper entryWrapper) {
+        String topic = routingKey(entryWrapper, EventTypeConstants.UPDATE);
+        entryWrapper.getAllRowDataList()
+                .stream()
+                .map(rowData -> json(rowData.getBeforeColumnsList()))
+                .map(json -> new XxlMqMessage(topic, json))
+                .forEach(XxlMqProducer::produce);
     }
 }
