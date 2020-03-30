@@ -1,6 +1,7 @@
 ## 简介
 
-![](http://assets.processon.com/chart_image/5e7d8f17e4b08e4e24428c33.png?_=1585290806685)
+![](http://processon.com/chart_image/5e7d8f17e4b08e4e24428c33.png)
+https://www.processon.com/view/link/5e7d8f28e4b08e4e24428c6c
 
 ### 功能
 - Redis 缓存刷新, 支持增量和全量
