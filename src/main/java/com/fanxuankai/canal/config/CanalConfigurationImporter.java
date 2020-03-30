@@ -6,7 +6,7 @@ import com.fanxuankai.canal.enums.RedisKeyPrefix;
 import com.fanxuankai.canal.flow.Otter;
 import com.fanxuankai.canal.flow.OtterFactory;
 import com.fanxuankai.canal.mq.MqType;
-import com.fanxuankai.canal.util.RedisUtil;
+import com.fanxuankai.canal.util.RedisUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.boot.ApplicationArguments;
@@ -49,7 +49,7 @@ public class CanalConfigurationImporter implements ApplicationRunner {
         CanalEntityMetadataCache.load();
         CanalEntityMetadataCache.from(canalConfig);
         name = EnableCanalAttributes.getName();
-        key = RedisUtil.customKey(RedisKeyPrefix.SERVICE_CACHE, name + SEPARATOR + CANAL_RUNNING_TAG);
+        key = RedisUtils.customKey(RedisKeyPrefix.SERVICE_CACHE, name + SEPARATOR + CANAL_RUNNING_TAG);
         Boolean setCanalRunning = redisTemplate.opsForValue().setIfAbsent(key, true);
         if (!Boolean.TRUE.equals(setCanalRunning)) {
             log.info("{} 已有实例建立了 Canal 连接", name);

@@ -1,6 +1,7 @@
 package com.fanxuankai.canal.aviator;
 
 import com.alibaba.otter.canal.protocol.CanalEntry.Column;
+import com.fanxuankai.canal.util.CommonUtils;
 import com.fanxuankai.canal.util.ReflectionUtils;
 import com.google.common.base.CaseFormat;
 import com.googlecode.aviator.AviatorEvaluator;
@@ -13,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * @author fanxuankai
@@ -48,7 +48,7 @@ public class Aviators {
 
     private static Map<String, Object> toActualType(List<Column> columnList, Class<?> javaType) {
         Map<String, Class<?>> allFieldsType = getAllFieldsType(javaType);
-        Map<String, String> columnMap = columnMap(columnList);
+        Map<String, String> columnMap = CommonUtils.toMap(columnList);
         Map<String, Object> map = new HashMap<>(columnMap.size());
         for (Map.Entry<String, String> entry : columnMap.entrySet()) {
             String name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, entry.getKey());
@@ -56,10 +56,6 @@ public class Aviators {
             map.put(name, CONVERSION_SERVICE.convert(entry.getValue(), fieldType));
         }
         return map;
-    }
-
-    private static Map<String, String> columnMap(List<Column> columnList) {
-        return columnList.stream().collect(Collectors.toMap(Column::getName, Column::getValue));
     }
 
     private static Map<String, Class<?>> getAllFieldsType(Class<?> clazz) {

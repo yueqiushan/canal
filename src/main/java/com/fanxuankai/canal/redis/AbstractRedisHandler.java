@@ -5,7 +5,7 @@ import com.fanxuankai.canal.flow.AbstractHandler;
 import com.fanxuankai.canal.metadata.CanalEntityMetadata;
 import com.fanxuankai.canal.metadata.RedisMetadata;
 import com.fanxuankai.canal.metadata.TableMetadata;
-import com.fanxuankai.canal.util.RedisUtil;
+import com.fanxuankai.canal.util.RedisUtils;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -30,17 +30,17 @@ public abstract class AbstractRedisHandler extends AbstractHandler {
 
     protected String keyOf(EntryWrapper entryWrapper) {
         TableMetadata tableMetadata = CanalEntityMetadataCache.getTableMetadata(entryWrapper);
-        return RedisUtil.key(tableMetadata.getSchema(), tableMetadata.getName());
+        return RedisUtils.key(tableMetadata.getSchema(), tableMetadata.getName());
     }
 
     protected String keyOf(EntryWrapper entryWrapper, String suffix) {
         CanalEntityMetadata canalEntityMetadata = CanalEntityMetadataCache.getMetadata(entryWrapper);
         RedisMetadata redisMetadata = canalEntityMetadata.getRedisMetadata();
         if (StringUtils.isNotBlank(redisMetadata.getKey())) {
-            return RedisUtil.customKey(redisMetadata.getKey(), suffix);
+            return RedisUtils.customKey(redisMetadata.getKey(), suffix);
         }
         TableMetadata tableMetadata = canalEntityMetadata.getTableMetadata();
-        return RedisUtil.key(tableMetadata.getSchema(), tableMetadata.getName(), suffix);
+        return RedisUtils.key(tableMetadata.getSchema(), tableMetadata.getName(), suffix);
     }
 
     @Override

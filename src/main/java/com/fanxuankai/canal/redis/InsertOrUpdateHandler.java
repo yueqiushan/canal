@@ -1,10 +1,10 @@
 package com.fanxuankai.canal.redis;
 
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.annotation.CombineKey;
 import com.fanxuankai.canal.constants.RedisConstants;
 import com.fanxuankai.canal.metadata.RedisMetadata;
+import com.fanxuankai.canal.util.CommonUtils;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import com.google.common.collect.Maps;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -34,7 +34,7 @@ public class InsertOrUpdateHandler extends AbstractRedisHandler {
         String key = keyOf(entryWrapper);
         filterEntryRowData(entryWrapper, false);
         entryWrapper.getAllRowDataList().forEach(rowData -> {
-            String value = json(rowData.getAfterColumnsList());
+            Map<String, String> value = CommonUtils.toMap(rowData.getAfterColumnsList());
             rowData.getAfterColumnsList()
                     .stream()
                     .filter(column -> {
@@ -55,8 +55,7 @@ public class InsertOrUpdateHandler extends AbstractRedisHandler {
                         }
                     });
             if (!CollectionUtils.isEmpty(combineKeys)) {
-                Map<String, String> columnMap = rowData.getAfterColumnsList().stream()
-                        .collect(Collectors.toMap(CanalEntry.Column::getName, CanalEntry.Column::getValue));
+                Map<String, String> columnMap = CommonUtils.toMap(rowData.getAfterColumnsList());
                 for (CombineKey combineKey : combineKeys) {
                     List<String> columnList = Arrays.asList(combineKey.values());
                     String suffix = String.join(RedisConstants.SEPARATOR, columnList);

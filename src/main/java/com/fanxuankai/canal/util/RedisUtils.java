@@ -11,7 +11,7 @@ import static com.fanxuankai.canal.enums.RedisKeyPrefix.DB_CACHE;
  *
  * @author fanxuankai
  */
-public class RedisUtil {
+public class RedisUtils {
 
     /**
      * 生成 key

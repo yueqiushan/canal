@@ -1,11 +1,12 @@
 package com.fanxuankai.canal.redis;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.fanxuankai.canal.annotation.CanalEntity;
 import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.config.CanalConfig;
 import com.fanxuankai.canal.metadata.RedisMetadata;
-import com.fanxuankai.canal.util.RedisUtil;
+import com.fanxuankai.canal.util.RedisUtils;
 import com.fanxuankai.canal.util.ReflectionUtils;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
@@ -67,15 +68,7 @@ public class RedisRepository<T> implements RedisSuffixRepository<T> {
 
     @Override
     public List<T> findAll() {
-        List<Object> values = redisTemplate.opsForHash().values(RedisUtil.key(canalConfig.getSchema(),
-                tableName()));
-        if (CollectionUtils.isEmpty(values)) {
-            return Collections.emptyList();
-        }
-        return values.stream()
-                .filter(Objects::nonNull)
-                .map(o -> JSON.parseObject(o.toString(), tClass))
-                .collect(Collectors.toList());
+        return getAll(RedisUtils.key(canalConfig.getSchema(), tableName()));
     }
 
     @Override
@@ -87,30 +80,19 @@ public class RedisRepository<T> implements RedisSuffixRepository<T> {
         for (Object id : ids) {
             idSet.add(id.toString());
         }
-        List<Object> objects = multiGet(RedisUtil.key(canalConfig.getSchema(), tableName()), idSet);
-        if (CollectionUtils.isEmpty(objects)) {
-            return Collections.emptyList();
-        }
-        return objects.stream()
-                .filter(Objects::nonNull)
-                .map(o -> JSON.parseObject(o.toString(), tClass))
-                .collect(Collectors.toList());
+        return multiGet(RedisUtils.key(canalConfig.getSchema(), tableName()), idSet);
     }
 
     @Override
     public long count() {
-        return redisTemplate.opsForHash().size(RedisUtil.key(canalConfig.getSchema(),
+        return redisTemplate.opsForHash().size(RedisUtils.key(canalConfig.getSchema(),
                 tableName()));
     }
 
     @Override
     public T getOne(Object id) {
-        Object o = redisTemplate.opsForHash().get(RedisUtil.key(canalConfig.getSchema(),
-                tableName()), id.toString());
-        if (o == null) {
-            return null;
-        }
-        return JSON.parseObject(o.toString(), tClass);
+        return convert(redisTemplate.opsForHash().get(RedisUtils.key(canalConfig.getSchema(),
+                tableName()), id.toString()));
     }
 
     @Override
@@ -125,34 +107,43 @@ public class RedisRepository<T> implements RedisSuffixRepository<T> {
 
     @Override
     public List<T> findAllBySuffix(String suffix, Iterable<Object> values) {
-        String key = RedisUtil.key(canalConfig.getSchema(), tableName(), suffix);
+        String key = RedisUtils.key(canalConfig.getSchema(), tableName(), suffix);
         Set<Object> hashKeys = new HashSet<>();
         for (Object value : values) {
             hashKeys.add(value.toString());
         }
-        List<Object> objects = multiGet(key, hashKeys);
-        if (CollectionUtils.isEmpty(objects)) {
-            return Collections.emptyList();
-        }
-        return objects.stream()
-                .filter(Objects::nonNull)
-                .map(o -> JSON.parseObject(o.toString(), tClass))
-                .collect(Collectors.toList());
+        return multiGet(key, hashKeys);
     }
 
     @Override
     public T getOne(String suffix, Object value) {
-        Object o = redisTemplate.opsForHash().get(RedisUtil.key(canalConfig.getSchema(),
-                tableName(), suffix), value.toString());
+        return convert(redisTemplate.opsForHash().get(RedisUtils.key(canalConfig.getSchema(),
+                tableName(), suffix), value.toString()));
+    }
+
+    private List<T> getAll(String key) {
+        return convert(redisTemplate.opsForHash().values(key));
+    }
+
+    private List<T> multiGet(String key, Collection<Object> hashKeys) {
+        return convert(redisTemplate.opsForHash().multiGet(key, hashKeys));
+    }
+
+    private List<T> convert(List<Object> objects) {
+        objects = objects.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(objects)) {
+            return Collections.emptyList();
+        }
+        return new JSONArray(objects).toJavaList(tClass);
+    }
+
+    private T convert(Object o) {
         if (o == null) {
             return null;
         }
-        return JSON.parseObject(o.toString(), tClass);
+        return JSON.parseObject(JSON.toJSONString(o), tClass);
     }
 
-    private List<Object> multiGet(String key, Collection<Object> hashKeys) {
-        return redisTemplate.opsForHash().multiGet(key, hashKeys);
-    }
 
     private String tableName() {
         if (!StringUtils.isBlank(redisMetadata.getKey())) {

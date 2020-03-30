@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.fanxuankai.canal.config.CanalConfig;
 import com.fanxuankai.canal.enums.RedisKeyPrefix;
-import com.fanxuankai.canal.util.RedisUtil;
+import com.fanxuankai.canal.util.RedisUtils;
 import com.fanxuankai.canal.util.ThreadPoolService;
 import com.fanxuankai.canal.wrapper.ContextWrapper;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
@@ -34,7 +34,7 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
 
     public HandleSubscriber(Config config) {
         this.config = config;
-        logFileOffsetTag = RedisUtil.customKey(RedisKeyPrefix.SERVICE_CACHE,
+        logFileOffsetTag = RedisUtils.customKey(RedisKeyPrefix.SERVICE_CACHE,
                 config.logfileOffsetPrefix + SEPARATOR + LOGFILE_OFFSET);
     }
 

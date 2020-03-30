@@ -1,10 +1,10 @@
 package com.fanxuankai.canal.redis;
 
-import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.annotation.CombineKey;
 import com.fanxuankai.canal.constants.RedisConstants;
 import com.fanxuankai.canal.metadata.RedisMetadata;
+import com.fanxuankai.canal.util.CommonUtils;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import com.google.common.collect.Maps;
 import org.springframework.data.redis.core.HashOperations;
@@ -54,8 +54,7 @@ public class DeleteHandler extends AbstractRedisHandler {
                                 }
                             });
                     if (!CollectionUtils.isEmpty(combineKeys)) {
-                        Map<String, String> columnMap = rowData.getBeforeColumnsList().stream()
-                                .collect(Collectors.toMap(CanalEntry.Column::getName, CanalEntry.Column::getValue));
+                        Map<String, String> columnMap = CommonUtils.toMap(rowData.getBeforeColumnsList());
                         for (CombineKey combineKey : combineKeys) {
                             List<String> columnList = Arrays.asList(combineKey.values());
                             String suffix = String.join(RedisConstants.SEPARATOR, columnList);
