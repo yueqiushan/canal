@@ -15,6 +15,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 
@@ -107,7 +108,7 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
         } catch (Exception e) {
             throw new HandleException(e);
         }
-        if (config.canalConfig.isShowLog()) {
+        if (Objects.equals(config.canalConfig.getShowLog(), Boolean.TRUE)) {
             HandlerLogger.asyncLog(HandlerLogger.LogInfo.builder()
                     .canalConfig(config.canalConfig)
                     .handler(handler)

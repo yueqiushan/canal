@@ -52,27 +52,37 @@ public class CanalConfig {
     /**
      * 拉取数据的间隔(ms)
      */
-    private long intervalMillis = 1000;
+    private Long intervalMillis = 1000L;
 
     /**
      * 拉取数据的数量
      */
-    private int batchSize = 100;
+    private Integer batchSize = 100;
 
     /**
      * 打印日志
      */
-    private boolean showLog;
+    private Boolean showLog = Boolean.FALSE;
 
     /**
      * 显示数据变动的日志
      */
-    private boolean showRowChange;
+    private Boolean showRowChange = Boolean.FALSE;
 
     /**
      * 美化数据变动的日志
      */
-    private boolean formatRowChangeLog;
+    private Boolean formatRowChangeLog = Boolean.FALSE;
+
+    /**
+     * 开启 Redis 缓存, 如果设置该值会覆盖 EnableCanal 注解
+     */
+    private Boolean enableRedis;
+
+    /**
+     * 开启 MQ, 如果设置该值会覆盖 EnableCanal 注解
+     */
+    private Boolean enableMq;
 
     @Data
     public static class Cluster {
@@ -93,5 +103,4 @@ public class CanalConfig {
          */
         private int port = 11111;
     }
-
 }

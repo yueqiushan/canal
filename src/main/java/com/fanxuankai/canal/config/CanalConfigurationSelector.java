@@ -15,7 +15,6 @@ public class CanalConfigurationSelector implements ImportSelector {
         EnableCanalAttributes.from(importingClassMetadata);
         CanalEntityMetadataCache.load();
         // 使用 EnableCanal 注解时, 导入所需的 Bean
-        return new String[]{CanalEntityMetadataCache.class.getName(), CanalConfigurationImporter.class.getName(),
-                CanalConfig.class.getName(), TableMetadataConfig.class.getName()};
+        return new String[]{CanalConfig.class.getName(), CanalConfigurationImporter.class.getName()};
     }
 }

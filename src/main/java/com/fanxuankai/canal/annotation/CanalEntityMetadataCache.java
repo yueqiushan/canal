@@ -1,5 +1,6 @@
 package com.fanxuankai.canal.annotation;
 
+import com.fanxuankai.canal.config.CanalConfig;
 import com.fanxuankai.canal.metadata.CanalEntityMetadata;
 import com.fanxuankai.canal.metadata.MqMetadata;
 import com.fanxuankai.canal.metadata.RedisMetadata;
@@ -85,7 +86,11 @@ public class CanalEntityMetadataCache {
         }
     }
 
-    public static void setDefaultSchema(String defaultSchema) {
+    public static void from(CanalConfig canalConfig) {
+        setDefaultSchema(canalConfig.getSchema());
+    }
+
+    private static void setDefaultSchema(String defaultSchema) {
         for (CanalEntityMetadata metadata : ALL_METADATA) {
             TableMetadata tableMetadata = metadata.getTableMetadata();
             if (StringUtils.isBlank(tableMetadata.getSchema())) {

@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.alibaba.otter.canal.protocol.CanalEntry.EventType.*;
@@ -37,9 +38,10 @@ public class HandlerLogger {
                     .time(logInfo.time)
                     .build();
             log.info(JSON.toJSONString(build));
-            if (logInfo.getCanalConfig().isShowRowChange()) {
+            if (Objects.equals(logInfo.getCanalConfig().getShowRowChange(), Boolean.TRUE)) {
                 log.info(JSON.toJSONString(entryWrapper.getAllRowDataList().stream().map(o -> logColumns(o,
-                        entryWrapper.getEventType())), logInfo.getCanalConfig().isFormatRowChangeLog()));
+                        entryWrapper.getEventType())),
+                        Objects.equals(logInfo.getCanalConfig().getFormatRowChangeLog(), Boolean.TRUE)));
             }
         });
     }

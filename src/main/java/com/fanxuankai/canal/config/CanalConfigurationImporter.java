@@ -1,5 +1,6 @@
 package com.fanxuankai.canal.config;
 
+import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.annotation.EnableCanalAttributes;
 import com.fanxuankai.canal.enums.RedisKeyPrefix;
 import com.fanxuankai.canal.flow.Otter;
@@ -45,6 +46,9 @@ public class CanalConfigurationImporter implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        CanalEntityMetadataCache.load();
+        CanalEntityMetadataCache.from(canalConfig);
+        EnableCanalAttributes.from(canalConfig);
         name = EnableCanalAttributes.getName();
         key = RedisUtil.customKey(RedisKeyPrefix.SERVICE_CACHE, name + SEPARATOR + CANAL_RUNNING_TAG);
         Boolean setCanalRunning = redisTemplate.opsForValue().setIfAbsent(key, true);
@@ -65,7 +69,6 @@ public class CanalConfigurationImporter implements ApplicationRunner {
                 OtterFactory.getXxlMqOtter(canalConfig, redisTemplate).ifPresent(Otter::start);
             }
         }
-
     }
 
     @PreDestroy

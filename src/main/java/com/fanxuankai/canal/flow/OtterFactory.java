@@ -25,9 +25,9 @@ import java.util.stream.Collectors;
  */
 public class OtterFactory {
 
-    private static final String REDIS = "redis";
-    private static final String XXL_MQ = "xxl-mq";
-    private static final String RABBIT_MQ = "rabbitMq";
+    private static final String REDIS = "Redis";
+    private static final String XXL_MQ = "XXL-MQ";
+    private static final String RABBIT_MQ = "RabbitMQ";
 
     private static Optional<ConnectConfig> makeConnectConfig(CanalConfig canalConfig,
                                                              Predicate<? super CanalEntityMetadata> predicate,

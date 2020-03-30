@@ -4,29 +4,29 @@
 
 ### 功能
 - Redis 缓存刷新, 支持增量和全量
-- 数据感知 MQ 推送, 目前支持 RabbitMQ、xxl-mq
+- 数据感知 MQ 推送, 目前支持 RabbitMQ、XXL-MQ
 - 构建 Elasticsearch 索引 （暂未支持）
 
-### 环境依赖
+### 环境
 - Canal 服务
 - JDK 13
 - RabbitMq
 - Redis
 - XXL-MQ
 
-### 核心注解使用
+### 核心注解
 @EnableCanal
 - 在 spring boot 启动类使用, 表示激活 Canal 消费
 - scanBasePackages 扫描 CanalEntity 所在的包 
 - Redis 为默认开启
-- Mq 需要指定开启, 默认使用 RabbitMQ, 可以切换为 xxl-mq
+- MQ 需要指定开启, 默认使用 RabbitMQ, 可以切换为 XXL-MQ
 
 @CanalEntity
 - 在实体类上使用, 表示该类对应的数据库表格开启 Canal 消费
 - Redis 为默认开启
 - 支持 Aviator 表达式, 实现数据过滤最小单位到行
 
-### 配置文件说明
+### 配置说明
 ```
 # spring boot application.yml
 
@@ -46,9 +46,9 @@ canal:
   username: canal
   # 密码
   password: canal
-  # redis 实例名
+  # Redis 实例名
   redis-instance: redis-example
-  # mq 实例名
+  # MQ 实例名
   mq-instance: mq-example
   # 数据库
   schema: example
@@ -62,6 +62,11 @@ canal:
   show-row-change: false
   # 格式化数据明细日志
   format-row-change-log: false
+  # 开启 Redis 缓存, 如果设置该值会覆盖 EnableCanal 注解
+  # 如果需要全量同步到 Redis, 可以将初 Redis 除外全部禁用, 同步完成后再按需开启 
+  enable-redis:
+  # 开启 MQ, 如果设置该值会覆盖 EnableCanal 注解
+  enable-mq:
 ```
 
 ### 常见问题

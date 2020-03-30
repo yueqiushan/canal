@@ -1,5 +1,6 @@
 package com.fanxuankai.canal.annotation;
 
+import com.fanxuankai.canal.config.CanalConfig;
 import com.fanxuankai.canal.mq.MqType;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
@@ -45,6 +46,17 @@ public class EnableCanalAttributes {
                     EnableCanal.class.getSimpleName(), metadata.getClassName()));
         }
         EnableCanalAttributes.attributes = attributes;
+    }
+
+    public static void from(CanalConfig canalConfig) {
+        Boolean enableRedis = canalConfig.getEnableRedis();
+        if (enableRedis != null) {
+            attributes.put(DEFAULT_ENABLE_REDIS_ATTRIBUTE_NAME, enableRedis);
+        }
+        Boolean enableMq = canalConfig.getEnableMq();
+        if (enableMq != null) {
+            attributes.put(DEFAULT_ENABLE_MQ_ATTRIBUTE_NAME, enableMq);
+        }
     }
 
     public static String getName() {

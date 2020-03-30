@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Mq 注解元数据
+ * MQ 注解元数据
  *
  * @author fanxuankai
  */
