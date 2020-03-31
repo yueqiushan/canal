@@ -63,8 +63,9 @@ public class OtterFactory {
                 canalConfig.getRedisInstance(), name)
                 .map(connectConfig -> {
                     Map<CanalEntry.EventType, Handler> handlerMap = new HashMap<>(4);
-                    handlerMap.put(CanalEntry.EventType.INSERT, new InsertOrUpdateHandler(redisTemplate));
-                    handlerMap.put(CanalEntry.EventType.UPDATE, new InsertOrUpdateHandler(redisTemplate));
+                    InsertOrUpdateHandler insertOrUpdateHandler = new InsertOrUpdateHandler(redisTemplate);
+                    handlerMap.put(CanalEntry.EventType.INSERT, insertOrUpdateHandler);
+                    handlerMap.put(CanalEntry.EventType.UPDATE, insertOrUpdateHandler);
                     handlerMap.put(CanalEntry.EventType.DELETE, new DeleteHandler(redisTemplate));
                     handlerMap.put(CanalEntry.EventType.ERASE, new EraseHandler(redisTemplate));
                     HandleSubscriber.Config subscriberConfig = HandleSubscriber.Config.builder()

@@ -33,11 +33,11 @@ public class ConfirmSubscriber implements Flow.Subscriber<ContextWrapper> {
 
     @Override
     public void onError(Throwable throwable) {
-        log.error(throwable.getLocalizedMessage(), throwable);
+        log.error(String.format("%s %s", name, throwable.getLocalizedMessage()), throwable);
     }
 
     @Override
     public void onComplete() {
-        log.info("Done");
+        log.info("{} Done", name);
     }
 }

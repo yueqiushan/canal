@@ -60,24 +60,25 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
             }
             item.setProcessed(true);
         } catch (HandleException e) {
-            throw new RuntimeException("Handle Exception batchId: " + batchId, e);
+            throw new RuntimeException(String.format("%s Handle Exception batchId: %s", config.getSubscriberName(),
+                    batchId), e);
         } finally {
             submit(item);
         }
-        String handle = config.skip ? "Skip Handle" : "Handle";
-        log.info("{} {} batchId: {}, rowDataCount: {}({}), time: {}ms", config.subscriberName, handle, batchId,
+        String handle = config.skip ? "Skip " : "";
+        log.info("{} {}Handle batchId: {}, rowDataCount: {}({}), time: {}ms", config.subscriberName, handle, batchId,
                 rowChangeDataCount, item.getAllRawRowDataCount(), System.currentTimeMillis() - l);
         subscription.request(1);
     }
 
     @Override
     public void onError(Throwable throwable) {
-        log.error(throwable.getLocalizedMessage(), throwable);
+        log.error(String.format("%s %s", config.getSubscriberName(), throwable.getLocalizedMessage()), throwable);
     }
 
     @Override
     public void onComplete() {
-        log.info("Done");
+        log.info("{} Done", config.subscriberName);
     }
 
     private void handle(EntryWrapper entryWrapper, long batchId) throws HandleException {

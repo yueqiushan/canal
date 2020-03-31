@@ -58,7 +58,7 @@ public class SimpleOtter implements Otter {
                             publisher.submit(new Context(canalConnector, message));
                         }
                     } catch (CanalClientException e) {
-                        log.error("停止消费" + e.getLocalizedMessage(), e);
+                        log.error(String.format("%s 停止消费 %s", subscriberName, e.getLocalizedMessage()), e);
                         CanalConnectorHolder.reconnect(connectConfig);
                         log.info("{} 启动消费", subscriberName);
                     }
