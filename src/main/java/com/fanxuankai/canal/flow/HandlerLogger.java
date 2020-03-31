@@ -39,9 +39,11 @@ public class HandlerLogger {
                     .build();
             log.info(JSON.toJSONString(build));
             if (Objects.equals(logInfo.getCanalConfig().getShowRowChange(), Boolean.TRUE)) {
-                log.info(JSON.toJSONString(entryWrapper.getAllRowDataList().stream().map(o -> logColumns(o,
-                        entryWrapper.getEventType())),
-                        Objects.equals(logInfo.getCanalConfig().getFormatRowChangeLog(), Boolean.TRUE)));
+                List<List<LogColumn>> list = entryWrapper.getAllRowDataList().stream().map(o -> logColumns(o,
+                        entryWrapper.getEventType()))
+                        .collect(Collectors.toList());
+                log.info(JSON.toJSONString(list, Objects.equals(logInfo.getCanalConfig().getFormatRowChangeLog(),
+                        Boolean.TRUE)));
             }
         });
     }
