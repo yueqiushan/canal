@@ -73,11 +73,10 @@ public abstract class AbstractHandler implements Handler {
     private void filterEntryRowData(EntryWrapper entryWrapper,
                                     CanalEntityMetadata metadata,
                                     FilterMetadata filterMetadata) {
-        List<CanalEntry.RowData> rowDataList =
-                entryWrapper.getAllRowDataList()
-                        .stream()
-                        .filter(rowData -> filterRowData(rowData, filterMetadata, metadata.getTypeClass()))
-                        .collect(Collectors.toList());
+        List<CanalEntry.RowData> rowDataList = entryWrapper.getAllRowDataList()
+                .stream()
+                .filter(rowData -> filterRowData(rowData, filterMetadata, metadata.getTypeClass()))
+                .collect(Collectors.toList());
         entryWrapper.setAllRowDataList(rowDataList);
     }
 

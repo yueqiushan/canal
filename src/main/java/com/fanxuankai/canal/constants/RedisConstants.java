@@ -11,6 +11,10 @@ public class RedisConstants {
      */
     public static final String SEPARATOR = ".";
     /**
+     * 分隔符1
+     */
+    public static final String SEPARATOR1 = ":";
+    /**
      * 全局名
      */
     public static final String GLOBAL_NAME = "Canal";

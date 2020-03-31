@@ -56,9 +56,9 @@ public class DeleteHandler extends AbstractRedisHandler {
                         Map<String, String> columnMap = CommonUtils.toMap(rowData.getBeforeColumnsList());
                         for (CombineKey combineKey : combineKeys) {
                             List<String> columnList = Arrays.asList(combineKey.values());
-                            String suffix = String.join(RedisConstants.SEPARATOR, columnList);
+                            String suffix = String.join(RedisConstants.SEPARATOR1, columnList);
                             String name =
-                                    columnList.stream().map(columnMap::get).collect(Collectors.joining(RedisConstants.SEPARATOR));
+                                    columnList.stream().map(columnMap::get).collect(Collectors.joining(RedisConstants.SEPARATOR1));
                             hashKeyMap.computeIfAbsent(keyOf(entryWrapper, suffix), s -> new ArrayList<>()).add(name);
                         }
                     }

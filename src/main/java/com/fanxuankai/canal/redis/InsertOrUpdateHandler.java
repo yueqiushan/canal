@@ -7,6 +7,7 @@ import com.fanxuankai.canal.metadata.RedisMetadata;
 import com.fanxuankai.canal.util.CommonUtils;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import com.google.common.collect.Maps;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
@@ -57,16 +58,17 @@ public class InsertOrUpdateHandler extends AbstractRedisHandler {
                 Map<String, String> columnMap = CommonUtils.toMap(rowData.getAfterColumnsList());
                 for (CombineKey combineKey : combineKeys) {
                     List<String> columnList = Arrays.asList(combineKey.values());
-                    String suffix = String.join(RedisConstants.SEPARATOR, columnList);
+                    String suffix = String.join(RedisConstants.SEPARATOR1, columnList);
                     String name =
-                            columnList.stream().map(columnMap::get).collect(Collectors.joining(RedisConstants.SEPARATOR));
+                            columnList.stream().map(columnMap::get).collect(Collectors.joining(RedisConstants.SEPARATOR1));
                     map.computeIfAbsent(keyOf(entryWrapper, suffix), s -> Maps.newHashMap())
                             .put(name, value);
                 }
             }
         });
+        HashOperations<String, Object, Object> hash = redisTemplate.opsForHash();
         if (!map.isEmpty()) {
-            map.forEach((k, v) -> redisTemplate.opsForHash().putAll(k, v));
+            map.forEach(hash::putAll);
         }
     }
 }
