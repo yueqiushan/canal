@@ -50,14 +50,16 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
         long batchId = item.getMessageWrapper().getBatchId();
         List<EntryWrapper> entryWrapperList = item.getMessageWrapper().getEntryWrapperList();
         entryWrapperList.removeIf(EntryWrapper::isDdl);
-        long l = System.currentTimeMillis();
-        int rowChangeDataCount = 0;
         try {
             if (!config.skip) {
+                long l = System.currentTimeMillis();
+                int rowChangeDataCount = 0;
                 for (EntryWrapper entryWrapper : entryWrapperList) {
                     handle(entryWrapper, batchId);
                     rowChangeDataCount += entryWrapper.getAllRowDataList().size();
                 }
+                log.info("{} Handle batchId: {}, rowDataCount: {}({}), time: {}ms", config.subscriberName, batchId,
+                        rowChangeDataCount, item.getAllRawRowDataCount(), System.currentTimeMillis() - l);
             }
             item.setProcessed(true);
         } catch (HandleException e) {
@@ -66,9 +68,6 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
         } finally {
             submit(item);
         }
-        String handle = config.skip ? "Skip " : "";
-        log.info("{} {}Handle batchId: {}, rowDataCount: {}({}), time: {}ms", config.subscriberName, handle, batchId,
-                rowChangeDataCount, item.getAllRawRowDataCount(), System.currentTimeMillis() - l);
         subscription.request(1);
     }
 
