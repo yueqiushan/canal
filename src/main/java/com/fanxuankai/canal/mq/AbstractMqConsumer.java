@@ -39,7 +39,7 @@ public abstract class AbstractMqConsumer implements MessageConsumer<MessageInfo>
         return metadata.getMqMetadata().getFilterMetadata();
     }
 
-    protected String routingKey(EntryWrapper entryWrapper, String eventType) {
+    protected String routingKey(EntryWrapper entryWrapper, CanalEntry.EventType eventType) {
         CanalEntityMetadata entityMetadata = CanalEntityMetadataCache.getMetadata(entryWrapper);
         MqMetadata metadata = entityMetadata.getMqMetadata();
         if (StringUtils.isNotBlank(metadata.getName())) {

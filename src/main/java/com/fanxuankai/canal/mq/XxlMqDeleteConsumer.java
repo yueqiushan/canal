@@ -1,6 +1,6 @@
 package com.fanxuankai.canal.mq;
 
-import com.fanxuankai.canal.constants.EventTypeConstants;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 
 import java.util.List;
@@ -13,7 +13,7 @@ public class XxlMqDeleteConsumer extends AbstractXxlMqConsumer {
 
     @Override
     public MessageInfo process(EntryWrapper entryWrapper) {
-        String topic = routingKey(entryWrapper, EventTypeConstants.DELETE);
+        String topic = routingKey(entryWrapper, CanalEntry.EventType.DELETE);
         List<String> messages = entryWrapper.getAllRowDataList()
                 .stream()
                 .map(rowData -> json(rowData.getBeforeColumnsList()))

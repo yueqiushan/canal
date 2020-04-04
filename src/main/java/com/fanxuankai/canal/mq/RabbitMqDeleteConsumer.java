@@ -1,6 +1,6 @@
 package com.fanxuankai.canal.mq;
 
-import com.fanxuankai.canal.constants.EventTypeConstants;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import org.springframework.amqp.core.AmqpTemplate;
 
@@ -22,7 +22,7 @@ public class RabbitMqDeleteConsumer extends AbstractRabbitMqConsumer {
                 .stream()
                 .map(rowData -> json(rowData.getBeforeColumnsList()))
                 .collect(Collectors.toList());
-        String routingKey = routingKey(entryWrapper, EventTypeConstants.DELETE);
+        String routingKey = routingKey(entryWrapper, CanalEntry.EventType.DELETE);
         return new MessageInfo(routingKey, messages);
     }
 

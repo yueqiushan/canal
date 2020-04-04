@@ -1,11 +1,14 @@
 package com.fanxuankai.canal.config;
 
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
+import com.fanxuankai.canal.annotation.EnableCanalAttributes;
 import com.fanxuankai.canal.metadata.CanalEntityMetadata;
 import com.fanxuankai.canal.metadata.TableMetadata;
 import com.fanxuankai.canal.mq.MqConsumer;
 import com.fanxuankai.canal.mq.MqConsumerBeanGenerator;
 import com.fanxuankai.canal.mq.MqConsumerCache;
+import com.fanxuankai.canal.mq.MqType;
 import com.fanxuankai.canal.util.MqUtils;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
@@ -30,13 +33,26 @@ public class ConsumerBeanRegister implements ImportBeanDefinitionRegistrar {
             if (mqConsumer == null) {
                 continue;
             }
-            Class<?> mqConsumerBeanClass = MqConsumerBeanGenerator.generateMqConsumer(typeClass,
-                    MqUtils.name(tableMetadata.getSchema(), tableMetadata.getName()));
-            AnnotatedBeanDefinition annotatedBeanDefinition = new AnnotatedGenericBeanDefinition(mqConsumerBeanClass);
-            ConstructorArgumentValues cav = annotatedBeanDefinition.getConstructorArgumentValues();
-            cav.addGenericArgumentValue(mqConsumer);
-            BeanDefinitionHolder bh = new BeanDefinitionHolder(annotatedBeanDefinition, mqConsumerBeanClass.getName());
-            BeanDefinitionReaderUtils.registerBeanDefinition(bh, registry);
+            MqType mqType = EnableCanalAttributes.getMqType();
+            String topic = MqUtils.name(tableMetadata.getSchema(), tableMetadata.getName());
+            if (mqType == MqType.RABBIT_MQ) {
+                register(MqConsumerBeanGenerator.generateRabbitMqConsumer(typeClass, topic), mqConsumer, registry);
+            } else if (mqType == MqType.XXL_MQ) {
+                register(MqConsumerBeanGenerator.generateXxlMqConsumer(typeClass, topic, CanalEntry.EventType.INSERT)
+                        , mqConsumer, registry);
+                register(MqConsumerBeanGenerator.generateXxlMqConsumer(typeClass, topic, CanalEntry.EventType.UPDATE)
+                        , mqConsumer, registry);
+                register(MqConsumerBeanGenerator.generateXxlMqConsumer(typeClass, topic, CanalEntry.EventType.DELETE)
+                        , mqConsumer, registry);
+            }
         }
+    }
+
+    private void register(Class<?> mqConsumerBeanClass, MqConsumer<?> mqConsumer, BeanDefinitionRegistry registry) {
+        AnnotatedBeanDefinition annotatedBeanDefinition = new AnnotatedGenericBeanDefinition(mqConsumerBeanClass);
+        ConstructorArgumentValues cav = annotatedBeanDefinition.getConstructorArgumentValues();
+        cav.addGenericArgumentValue(mqConsumer);
+        BeanDefinitionHolder bh = new BeanDefinitionHolder(annotatedBeanDefinition, mqConsumerBeanClass.getName());
+        BeanDefinitionReaderUtils.registerBeanDefinition(bh, registry);
     }
 }

@@ -1,6 +1,6 @@
 package com.fanxuankai.canal.mq;
 
-import com.fanxuankai.canal.constants.EventTypeConstants;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import org.springframework.amqp.core.AmqpTemplate;
 
@@ -22,7 +22,7 @@ public class RabbitMqInsertConsumer extends AbstractRabbitMqConsumer {
                 .stream()
                 .map(rowData -> json(rowData.getAfterColumnsList()))
                 .collect(Collectors.toList());
-        String routingKey = routingKey(entryWrapper, EventTypeConstants.INSERT);
+        String routingKey = routingKey(entryWrapper, CanalEntry.EventType.INSERT);
         return new MessageInfo(routingKey, messages);
     }
 

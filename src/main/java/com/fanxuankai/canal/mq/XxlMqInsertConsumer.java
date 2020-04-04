@@ -1,6 +1,6 @@
 package com.fanxuankai.canal.mq;
 
-import com.fanxuankai.canal.constants.EventTypeConstants;
+import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 
 import java.util.List;
@@ -13,7 +13,7 @@ public class XxlMqInsertConsumer extends AbstractXxlMqConsumer {
 
     @Override
     public MessageInfo process(EntryWrapper entryWrapper) {
-        String topic = routingKey(entryWrapper, EventTypeConstants.INSERT);
+        String topic = routingKey(entryWrapper, CanalEntry.EventType.INSERT);
         List<String> messages = entryWrapper.getAllRowDataList()
                 .stream()
                 .map(rowData -> json(rowData.getAfterColumnsList()))
