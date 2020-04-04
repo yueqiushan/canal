@@ -24,9 +24,19 @@ public @interface EnableCanal {
     String name();
 
     /**
-     * 注解扫描的基础包 @CanalEntity
+     * 数据库名
      */
-    String[] scanBasePackages();
+    String schema();
+
+    /**
+     * 扫描 @CanalEntity 基础包
+     */
+    String[] scanEntityBasePackages();
+
+    /**
+     * 扫描 MqConsumer 的基础包
+     */
+    String[] scanMqConsumerBasePackages();
 
     /**
      * 开启 redis 缓存
@@ -36,7 +46,7 @@ public @interface EnableCanal {
     /**
      * 开启消息队列
      */
-    boolean enableMq() default false;
+    boolean enableMq() default true;
 
     /**
      * 消息队列类型

@@ -2,14 +2,10 @@ package com.fanxuankai.canal.redis;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.fanxuankai.canal.annotation.CanalEntity;
 import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
-import com.fanxuankai.canal.config.CanalConfig;
-import com.fanxuankai.canal.metadata.RedisMetadata;
+import com.fanxuankai.canal.metadata.CanalEntityMetadata;
 import com.fanxuankai.canal.util.RedisUtils;
-import com.fanxuankai.canal.util.ReflectionUtils;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
@@ -25,22 +21,19 @@ public abstract class AbstractRedisRepository<T> implements RedisReadonly<T> {
 
     @Resource
     protected RedisTemplate<Object, Object> redisTemplate;
-    @Resource
-    protected CanalConfig canalConfig;
     protected Class<T> tClass;
-    protected RedisMetadata redisMetadata;
+    private CanalEntityMetadata metadata;
 
     @SuppressWarnings("unchecked")
     public AbstractRedisRepository() {
         tClass =
                 (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[typeIndex()];
-        RedisMetadata redisMetadata = CanalEntityMetadataCache.getRedisMetadata(tClass);
-        if (redisMetadata == null || !redisMetadata.isEnable()) {
-            throw new RuntimeException(String.format("请使用注解(%s)且开启 Redis: %s", CanalEntity.class, getClass()));
-        }
-        this.redisMetadata = redisMetadata;
+        this.metadata = CanalEntityMetadataCache.getMetadata(tClass);
     }
 
+    /**
+     * 泛型索引
+     */
     protected abstract int typeIndex();
 
     @Override
@@ -55,7 +48,7 @@ public abstract class AbstractRedisRepository<T> implements RedisReadonly<T> {
 
     @Override
     public List<T> findAll() {
-        return getAll(RedisUtils.key(canalConfig.getSchema(), tableName()));
+        return getAll(RedisUtils.key(metadata.getTableMetadata().getSchema(), tableName()));
     }
 
     @Override
@@ -67,18 +60,18 @@ public abstract class AbstractRedisRepository<T> implements RedisReadonly<T> {
         for (Object id : ids) {
             idSet.add(id.toString());
         }
-        return multiGet(RedisUtils.key(canalConfig.getSchema(), tableName()), idSet);
+        return multiGet(RedisUtils.key(metadata.getTableMetadata().getSchema(), tableName()), idSet);
     }
 
     @Override
     public long count() {
-        return redisTemplate.opsForHash().size(RedisUtils.key(canalConfig.getSchema(),
+        return redisTemplate.opsForHash().size(RedisUtils.key(metadata.getTableMetadata().getSchema(),
                 tableName()));
     }
 
     @Override
     public T getOne(Object id) {
-        return convert(redisTemplate.opsForHash().get(RedisUtils.key(canalConfig.getSchema(),
+        return convert(redisTemplate.opsForHash().get(RedisUtils.key(metadata.getTableMetadata().getSchema(),
                 tableName()), id.toString()));
     }
 
@@ -105,10 +98,11 @@ public abstract class AbstractRedisRepository<T> implements RedisReadonly<T> {
         return JSON.parseObject(JSON.toJSONString(o), tClass);
     }
 
+    protected String schema() {
+        return metadata.getTableMetadata().getSchema();
+    }
+
     protected String tableName() {
-        if (!StringUtils.isBlank(redisMetadata.getKey())) {
-            return redisMetadata.getKey();
-        }
-        return ReflectionUtils.getTableName(tClass);
+        return metadata.getTableMetadata().getName();
     }
 }

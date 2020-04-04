@@ -2,7 +2,7 @@ package com.fanxuankai.canal.redis;
 
 import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.annotation.CombineKey;
-import com.fanxuankai.canal.constants.RedisConstants;
+import com.fanxuankai.canal.constants.CommonConstants;
 import com.fanxuankai.canal.metadata.RedisMetadata;
 import com.fanxuankai.canal.util.CommonUtils;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
@@ -20,14 +20,14 @@ import java.util.stream.Collectors;
 /**
  * @author fanxuankai
  */
-public class DeleteHandler extends AbstractRedisHandler {
+public class DeleteConsumer extends AbstractRedisConsumer<Map<String, List<String>>> {
 
-    public DeleteHandler(RedisTemplate<String, Object> redisTemplate) {
+    public DeleteConsumer(RedisTemplate<String, Object> redisTemplate) {
         super(redisTemplate);
     }
 
     @Override
-    public void doHandle(EntryWrapper entryWrapper) {
+    public Map<String, List<String>> process(EntryWrapper entryWrapper) {
         RedisMetadata redisMetadata = CanalEntityMetadataCache.getRedisMetadata(entryWrapper);
         List<String> keys = redisMetadata.getKeys();
         List<CombineKey> combineKeys = redisMetadata.getCombineKeys();
@@ -56,14 +56,20 @@ public class DeleteHandler extends AbstractRedisHandler {
                         Map<String, String> columnMap = CommonUtils.toMap(rowData.getBeforeColumnsList());
                         for (CombineKey combineKey : combineKeys) {
                             List<String> columnList = Arrays.asList(combineKey.values());
-                            String suffix = String.join(RedisConstants.SEPARATOR1, columnList);
+                            String suffix = String.join(CommonConstants.SEPARATOR1, columnList);
                             String name =
-                                    columnList.stream().map(columnMap::get).collect(Collectors.joining(RedisConstants.SEPARATOR1));
+                                    columnList.stream().map(columnMap::get).collect(Collectors.joining(CommonConstants.SEPARATOR1));
                             hashKeyMap.computeIfAbsent(keyOf(entryWrapper, suffix), s -> new ArrayList<>()).add(name);
                         }
                     }
                 });
-        hashKeyMap.forEach((s, strings) -> {
+        return hashKeyMap;
+    }
+
+    @Override
+    public void consume(Map<String, List<String>> stringListMap) {
+        HashOperations<String, Object, Object> ops = redisTemplate.opsForHash();
+        stringListMap.forEach((s, strings) -> {
             Object[] objects = strings.toArray();
             ops.delete(s, objects);
         });

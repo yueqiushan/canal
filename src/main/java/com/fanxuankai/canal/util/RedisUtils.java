@@ -3,7 +3,7 @@ package com.fanxuankai.canal.util;
 import com.fanxuankai.canal.enums.RedisKeyPrefix;
 import org.apache.commons.lang.StringUtils;
 
-import static com.fanxuankai.canal.constants.RedisConstants.SEPARATOR;
+import static com.fanxuankai.canal.constants.CommonConstants.SEPARATOR;
 import static com.fanxuankai.canal.enums.RedisKeyPrefix.DB_CACHE;
 
 /**

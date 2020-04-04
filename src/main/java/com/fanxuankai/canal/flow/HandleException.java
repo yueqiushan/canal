@@ -5,7 +5,7 @@ package com.fanxuankai.canal.flow;
  *
  * @author fanxuankai
  */
-public class HandleException extends Exception {
+public class HandleException extends RuntimeException {
 
     public HandleException(String message) {
         super(message);

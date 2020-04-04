@@ -27,10 +27,18 @@ public class ThreadPoolService {
         private ExecutorService executorService;
 
         Singleton() {
-            ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("canal-%d").build();
-            executorService = new ThreadPoolExecutor(20, 90, 0L, TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<>(), threadFactory);
+            executorService = forkJoinPool();
             Runtime.getRuntime().addShutdownHook(new Thread(() -> executorService.shutdown()));
+        }
+
+        private ExecutorService forkJoinPool() {
+            return ForkJoinPool.commonPool();
+        }
+
+        private ThreadPoolExecutor threadPoolExecutor() {
+            ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("canal-%d").build();
+            return new ThreadPoolExecutor(20, 90, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(),
+                    threadFactory);
         }
     }
 }

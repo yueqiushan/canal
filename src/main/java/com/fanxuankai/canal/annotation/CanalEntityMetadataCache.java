@@ -1,6 +1,5 @@
 package com.fanxuankai.canal.annotation;
 
-import com.fanxuankai.canal.config.CanalConfig;
 import com.fanxuankai.canal.metadata.CanalEntityMetadata;
 import com.fanxuankai.canal.metadata.MqMetadata;
 import com.fanxuankai.canal.metadata.RedisMetadata;
@@ -9,11 +8,11 @@ import com.fanxuankai.canal.util.ReflectionUtils;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author fanxuankai
@@ -21,11 +20,21 @@ import java.util.Map;
 public class CanalEntityMetadataCache {
 
     private static final List<CanalEntityMetadata> ALL_METADATA = Lists.newArrayList();
+    private static final List<CanalEntityMetadata> ALL_MQ_METADATA = Lists.newArrayList();
+    private static final List<CanalEntityMetadata> ALL_REDIS_METADATA = Lists.newArrayList();
     private static final Map<Class<?>, CanalEntityMetadata> DATA_BY_CLASS = Maps.newHashMap();
     private static final Map<TableMetadata, CanalEntityMetadata> DATA_BY_TABLE = Maps.newHashMap();
 
     public static List<CanalEntityMetadata> getAllMetadata() {
         return ALL_METADATA;
+    }
+
+    public static List<CanalEntityMetadata> getAllMqMetadata() {
+        return ALL_MQ_METADATA;
+    }
+
+    public static List<CanalEntityMetadata> getAllRedisMqMetadata() {
+        return ALL_REDIS_METADATA;
     }
 
     public static CanalEntityMetadata getMetadata(Class<?> clazz) {
@@ -70,7 +79,7 @@ public class CanalEntityMetadataCache {
     }
 
     public static void load() {
-        List<String> scanBasePackages = EnableCanalAttributes.getScanBasePackages();
+        List<String> scanBasePackages = EnableCanalAttributes.getScanEntityBasePackages();
         for (String scanBasePackage : scanBasePackages) {
             Map<Class<?>, CanalEntity> classMqMap = ReflectionUtils.scanAnnotation(scanBasePackage, CanalEntity.class);
             if (CollectionUtils.isEmpty(classMqMap)) {
@@ -81,23 +90,16 @@ public class CanalEntityMetadataCache {
                 CanalEntity canalEntity = entry.getValue();
                 CanalEntityMetadata metadata = new CanalEntityMetadata(canalEntity, aClass);
                 ALL_METADATA.add(metadata);
+                if (metadata.getRedisMetadata().isEnable()) {
+                    ALL_REDIS_METADATA.add(metadata);
+                }
+                if (metadata.getMqMetadata().isEnable()) {
+                    ALL_MQ_METADATA.add(metadata);
+                }
                 DATA_BY_CLASS.put(aClass, metadata);
             }
         }
+        DATA_BY_TABLE.putAll(ALL_METADATA.stream().collect(Collectors.toMap(CanalEntityMetadata::getTableMetadata,
+                o -> o)));
     }
-
-    public static void from(CanalConfig canalConfig) {
-        setDefaultSchema(canalConfig.getSchema());
-    }
-
-    private static void setDefaultSchema(String defaultSchema) {
-        for (CanalEntityMetadata metadata : ALL_METADATA) {
-            TableMetadata tableMetadata = metadata.getTableMetadata();
-            if (StringUtils.isBlank(tableMetadata.getSchema())) {
-                tableMetadata.setSchema(defaultSchema);
-            }
-            DATA_BY_TABLE.put(tableMetadata, metadata);
-        }
-    }
-
 }

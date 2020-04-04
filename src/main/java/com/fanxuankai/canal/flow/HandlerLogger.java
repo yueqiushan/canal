@@ -27,7 +27,7 @@ public class HandlerLogger {
         ThreadPoolService.getInstance().execute(() -> {
             EntryWrapper entryWrapper = logInfo.entryWrapper;
             LogRowChange build = LogRowChange.builder()
-                    .handler(logInfo.handler.getClass().getName())
+                    .handler(logInfo.clazz.getClass().getName())
                     .batchId(logInfo.batchId)
                     .file(entryWrapper.getLogfileName())
                     .offset(entryWrapper.getLogfileOffset())
@@ -78,7 +78,7 @@ public class HandlerLogger {
     @Builder
     public static class LogInfo {
         private CanalConfig canalConfig;
-        private Handler handler;
+        private Class<?> clazz;
         private EntryWrapper entryWrapper;
         private long batchId;
         private long time;

@@ -40,4 +40,11 @@ public class DomainConverter {
         return Pair.of(ts.get(0), ts.get(1));
     }
 
+    public static void main(String[] args) {
+        Pair<Long, Long> p = pairOf("", Long.class);
+        p.getLeft();
+        p.getRight();
+
+    }
+
 }

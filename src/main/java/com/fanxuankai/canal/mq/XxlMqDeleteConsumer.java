@@ -2,21 +2,22 @@ package com.fanxuankai.canal.mq;
 
 import com.fanxuankai.canal.constants.EventTypeConstants;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
-import com.xxl.mq.client.message.XxlMqMessage;
-import com.xxl.mq.client.producer.XxlMqProducer;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author fanxuankai
  */
-public class XxlMqDeleteHandler extends AbstractMqHandler {
+public class XxlMqDeleteConsumer extends AbstractXxlMqConsumer {
 
     @Override
-    public void doHandle(EntryWrapper entryWrapper) {
+    public MessageInfo process(EntryWrapper entryWrapper) {
         String topic = routingKey(entryWrapper, EventTypeConstants.DELETE);
-        entryWrapper.getAllRowDataList()
+        List<String> messages = entryWrapper.getAllRowDataList()
                 .stream()
                 .map(rowData -> json(rowData.getBeforeColumnsList()))
-                .map(json -> new XxlMqMessage(topic, json))
-                .forEach(XxlMqProducer::produce);
+                .collect(Collectors.toList());
+        return new MessageInfo(topic, messages);
     }
 }

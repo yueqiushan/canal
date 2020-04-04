@@ -3,8 +3,8 @@ package com.fanxuankai.canal.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import static com.fanxuankai.canal.constants.CommonConstants.SEPARATOR;
 import static com.fanxuankai.canal.constants.RedisConstants.GLOBAL_NAME;
-import static com.fanxuankai.canal.constants.RedisConstants.SEPARATOR;
 
 /**
  * @author fanxuankai

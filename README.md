@@ -18,13 +18,14 @@ https://www.processon.com/view/link/5e7d8f28e4b08e4e24428c6c
 ### 核心注解
 @EnableCanal
 - 在 spring boot 启动类使用, 表示激活 Canal 消费
-- scanBasePackages 扫描 CanalEntity 所在的包 
-- Redis 为默认开启
-- MQ 需要指定开启, 默认使用 RabbitMQ, 可以切换为 XXL-MQ
+- scanEntityBasePackages 扫描 CanalEntity 所在的包 
+- scanMqConsumerBasePackages 扫描 MqConsumer 所在的包 
+- Redis、MQ 默认开启
+- MQ 默认使用 RabbitMQ, 可以切换为 XXL-MQ
 
 @CanalEntity
 - 在实体类上使用, 表示该类对应的数据库表格开启 Canal 消费
-- Redis 为默认开启
+- Redis、MQ 默认开启
 - 支持 Aviator 表达式, 实现数据过滤最小单位到行
 
 ### 配置说明
@@ -64,9 +65,14 @@ canal:
   # 格式化数据明细日志
   format-row-change-log: false
   # MQ 跳过处理, 适用场景: Redis 全量同步时, MQ 跳过
-  # skip-mq: true
+  # skip-mq: false
+  # 批次达到一定数量进行并行处理, 且确保顺序消费
+  # performance-threshold: 10000
 ```
 
 ### 常见问题
 - 已有实例建立了 Canal 连接？
     - 清除 Redis 标记重启即可, key 的格式为 Canal.ServiceCache.服务名.CanalRunning
+- exception=com.alibaba.otter.canal.meta.exception.CanalMetaManagerException: batchId:845 is not the firstly:844
+    - 如果同时激活了 Redis、Mq, 且两者共用同一个 Canal 实例, 可能会导致 batchId 提交顺序错误
+    - 建议两者使用独立的 Canal 实例 

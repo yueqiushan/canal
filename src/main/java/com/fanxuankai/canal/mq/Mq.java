@@ -21,7 +21,7 @@ public @interface Mq {
     /**
      * 是否激活
      */
-    boolean enable() default false;
+    boolean enable() default true;
 
     /**
      * 队列名, 默认为 schema.table.EventType, .EventType 后缀自动添加, 不需指定

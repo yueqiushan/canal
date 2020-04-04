@@ -2,7 +2,7 @@ package com.fanxuankai.canal.redis;
 
 import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.annotation.CombineKey;
-import com.fanxuankai.canal.constants.RedisConstants;
+import com.fanxuankai.canal.constants.CommonConstants;
 import com.fanxuankai.canal.metadata.RedisMetadata;
 import com.fanxuankai.canal.util.CommonUtils;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
@@ -19,14 +19,14 @@ import java.util.stream.Collectors;
 /**
  * @author fanxuankai
  */
-public class InsertOrUpdateHandler extends AbstractRedisHandler {
+public class InsertOrUpdateConsumer extends AbstractRedisConsumer<Map<String, Map<String, Object>>> {
 
-    public InsertOrUpdateHandler(RedisTemplate<String, Object> redisTemplate) {
+    public InsertOrUpdateConsumer(RedisTemplate<String, Object> redisTemplate) {
         super(redisTemplate);
     }
 
     @Override
-    public void doHandle(EntryWrapper entryWrapper) {
+    public Map<String, Map<String, Object>> process(EntryWrapper entryWrapper) {
         RedisMetadata redisMetadata = CanalEntityMetadataCache.getRedisMetadata(entryWrapper);
         List<String> keys = redisMetadata.getKeys();
         boolean idAsField = redisMetadata.isIdAsField();
@@ -58,17 +58,22 @@ public class InsertOrUpdateHandler extends AbstractRedisHandler {
                 Map<String, String> columnMap = CommonUtils.toMap(rowData.getAfterColumnsList());
                 for (CombineKey combineKey : combineKeys) {
                     List<String> columnList = Arrays.asList(combineKey.values());
-                    String suffix = String.join(RedisConstants.SEPARATOR1, columnList);
+                    String suffix = String.join(CommonConstants.SEPARATOR1, columnList);
                     String name =
-                            columnList.stream().map(columnMap::get).collect(Collectors.joining(RedisConstants.SEPARATOR1));
+                            columnList.stream().map(columnMap::get).collect(Collectors.joining(CommonConstants.SEPARATOR1));
                     map.computeIfAbsent(keyOf(entryWrapper, suffix), s -> Maps.newHashMap())
                             .put(name, value);
                 }
             }
         });
+        return map;
+    }
+
+    @Override
+    public void consume(Map<String, Map<String, Object>> stringMapMap) {
         HashOperations<String, Object, Object> hash = redisTemplate.opsForHash();
-        if (!map.isEmpty()) {
-            map.forEach(hash::putAll);
+        if (!stringMapMap.isEmpty()) {
+            stringMapMap.forEach(hash::putAll);
         }
     }
 }

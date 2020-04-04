@@ -25,8 +25,7 @@ public class ConfirmSubscriber implements Flow.Subscriber<ContextWrapper> {
 
     @Override
     public void onNext(ContextWrapper item) {
-        log.info("{} {} batchId: {}", name, item.isProcessed() ? "Ack" : "Rollback",
-                item.getMessageWrapper().getBatchId());
+        log.info("{} Confirm batchId: {}", name, item.getMessageWrapper().getBatchId());
         item.confirm();
         subscription.request(1);
     }

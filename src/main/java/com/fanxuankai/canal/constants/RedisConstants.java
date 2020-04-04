@@ -7,14 +7,6 @@ package com.fanxuankai.canal.constants;
  */
 public class RedisConstants {
     /**
-     * 分隔符
-     */
-    public static final String SEPARATOR = ".";
-    /**
-     * 分隔符1
-     */
-    public static final String SEPARATOR1 = ":";
-    /**
      * 全局名
      */
     public static final String GLOBAL_NAME = "Canal";

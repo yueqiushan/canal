@@ -29,9 +29,18 @@ public class EnableCanalAttributes {
      */
     private static final String DEFAULT_NAME_ATTRIBUTE_NAME = "name";
     /**
-     * The default scanBasePackages attribute name.
+     * The default schema attribute name.
      */
-    private static final String DEFAULT_SCAN_BASE_PACKAGES_ATTRIBUTE_NAME = "scanBasePackages";
+    private static final String DEFAULT_SCHEMA_ATTRIBUTE_NAME = "schema";
+    /**
+     * The default scanCanalEntityBasePackages attribute name.
+     */
+    private static final String DEFAULT_SCAN_ENTITY_BASE_PACKAGES_ATTRIBUTE_NAME = "scanEntityBasePackages";
+    /**
+     * The default scanMqConsumerBasePackages attribute name.
+     */
+    private static final String DEFAULT_SCAN_CANAL_MQ_CONSUMER_BASE_PACKAGES_ATTRIBUTE_NAME =
+            "scanMqConsumerBasePackages";
 
     private static AnnotationAttributes attributes = new AnnotationAttributes();
 
@@ -51,8 +60,16 @@ public class EnableCanalAttributes {
         return attributes.getString(DEFAULT_NAME_ATTRIBUTE_NAME);
     }
 
-    public static List<String> getScanBasePackages() {
-        return Arrays.asList(attributes.getStringArray(DEFAULT_SCAN_BASE_PACKAGES_ATTRIBUTE_NAME));
+    public static String getSchema() {
+        return attributes.getString(DEFAULT_SCHEMA_ATTRIBUTE_NAME);
+    }
+
+    public static List<String> getScanEntityBasePackages() {
+        return Arrays.asList(attributes.getStringArray(DEFAULT_SCAN_ENTITY_BASE_PACKAGES_ATTRIBUTE_NAME));
+    }
+
+    public static List<String> getScanMqConsumerBasePackages() {
+        return Arrays.asList(attributes.getStringArray(DEFAULT_SCAN_CANAL_MQ_CONSUMER_BASE_PACKAGES_ATTRIBUTE_NAME));
     }
 
     public static boolean isEnableRedis() {

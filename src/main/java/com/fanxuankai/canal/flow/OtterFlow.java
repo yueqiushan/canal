@@ -13,7 +13,7 @@ public class OtterFlow {
      */
     public static Otter withFlow(ConnectConfig connectConfig, HandleSubscriber.Config subscriberConfig) {
         Otter otter = new SimpleOtter(connectConfig);
-        String subscriberName = subscriberConfig.getSubscriberName();
+        String subscriberName = subscriberConfig.getName();
         FilterAndConvertProcessor filterAndConvertProcessor = new FilterAndConvertProcessor(subscriberName);
         HandleSubscriber handleSubscriber = new HandleSubscriber(subscriberConfig);
         ConfirmSubscriber confirmSubscriber = new ConfirmSubscriber(subscriberName);

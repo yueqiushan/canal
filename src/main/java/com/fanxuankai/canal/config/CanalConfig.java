@@ -45,11 +45,6 @@ public class CanalConfig {
     private String mqInstance = "example";
 
     /**
-     * 数据库
-     */
-    private String schema;
-
-    /**
      * 拉取数据的间隔(ms)
      */
     private Long intervalMillis = 1000L;
@@ -78,6 +73,11 @@ public class CanalConfig {
      * MQ 跳过处理
      */
     private Boolean skipMq;
+
+    /**
+     * 批次达到一定数量进行并行处理, 且确保顺序消费
+     */
+    private Integer performanceThreshold = 10000;
 
     @Data
     public static class Cluster {

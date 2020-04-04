@@ -1,5 +1,6 @@
 package com.fanxuankai.canal.metadata;
 
+import com.fanxuankai.canal.annotation.EnableCanalAttributes;
 import com.fanxuankai.canal.annotation.Table;
 import com.fanxuankai.canal.util.ReflectionUtils;
 import lombok.Data;
@@ -17,7 +18,8 @@ public class TableMetadata {
     private String name;
 
     public TableMetadata(Table table, Class<?> clazz) {
-        this.schema = table.schema();
+        String schema = table.schema();
+        this.schema = schema.isEmpty() ? EnableCanalAttributes.getSchema() : schema;
         String name = table.name();
         this.name = name.isEmpty() ? ReflectionUtils.getTableName(clazz) : name;
     }

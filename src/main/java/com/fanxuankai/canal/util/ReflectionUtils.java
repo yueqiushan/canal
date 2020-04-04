@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
  * @author fanxuankai
  */
 public class ReflectionUtils {
-
     /**
      * 扫描注解
      *
@@ -31,6 +30,19 @@ public class ReflectionUtils {
         Reflections r = new Reflections(basePackage);
         Set<Class<?>> s = r.getTypesAnnotatedWith(annotationClass, true);
         return s.stream().collect(Collectors.toMap(o -> o, o -> o.getAnnotation(annotationClass)));
+    }
+
+    /**
+     * 扫描所有子类
+     *
+     * @param basePackage 基础包
+     * @param type        父类
+     * @param <T>         父类泛型
+     * @return 所有子类的 class
+     */
+    public static <T> Set<Class<? extends T>> scanAllSubTypes(String basePackage, Class<T> type) {
+        Reflections r = new Reflections(basePackage);
+        return r.getSubTypesOf(type);
     }
 
     /**

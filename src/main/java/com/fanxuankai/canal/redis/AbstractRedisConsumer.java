@@ -1,7 +1,7 @@
 package com.fanxuankai.canal.redis;
 
 import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
-import com.fanxuankai.canal.flow.AbstractHandler;
+import com.fanxuankai.canal.flow.MessageConsumer;
 import com.fanxuankai.canal.metadata.CanalEntityMetadata;
 import com.fanxuankai.canal.metadata.FilterMetadata;
 import com.fanxuankai.canal.metadata.RedisMetadata;
@@ -20,24 +20,24 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author fanxuankai
  */
-public abstract class AbstractRedisHandler extends AbstractHandler {
+public abstract class AbstractRedisConsumer<R> implements MessageConsumer<R> {
 
+    private static Map<TableMetadata, String> keyCache = new ConcurrentHashMap<>();
+    private static Map<SuffixKey, String> suffixKeyCache = new ConcurrentHashMap<>();
     protected RedisTemplate<String, Object> redisTemplate;
-    private Map<TableMetadata, String> keyCache = new ConcurrentHashMap<>();
-    private Map<SuffixKey, String> suffixKeyCache = new ConcurrentHashMap<>();
 
-    public AbstractRedisHandler(RedisTemplate<String, Object> redisTemplate) {
+    public AbstractRedisConsumer(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
     @Override
-    public boolean canHandle(EntryWrapper entryWrapper) {
+    public boolean canProcess(EntryWrapper entryWrapper) {
         CanalEntityMetadata metadata = CanalEntityMetadataCache.getMetadata(entryWrapper);
         return metadata != null && metadata.getRedisMetadata().isEnable();
     }
 
     @Override
-    protected FilterMetadata filter(CanalEntityMetadata metadata) {
+    public FilterMetadata filter(CanalEntityMetadata metadata) {
         return metadata.getRedisMetadata().getFilterMetadata();
     }
 

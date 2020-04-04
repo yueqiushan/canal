@@ -1,7 +1,7 @@
 package com.fanxuankai.canal.config;
 
-import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.annotation.EnableCanalAttributes;
+import com.fanxuankai.canal.constants.CommonConstants;
 import com.fanxuankai.canal.enums.RedisKeyPrefix;
 import com.fanxuankai.canal.flow.Otter;
 import com.fanxuankai.canal.flow.OtterFactory;
@@ -17,7 +17,6 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import static com.fanxuankai.canal.constants.RedisConstants.CANAL_RUNNING_TAG;
-import static com.fanxuankai.canal.constants.RedisConstants.SEPARATOR;
 
 /**
  * @author fanxuankai
@@ -46,9 +45,8 @@ public class CanalConfigurationImporter implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        CanalEntityMetadataCache.from(canalConfig);
         name = EnableCanalAttributes.getName();
-        key = RedisUtils.customKey(RedisKeyPrefix.SERVICE_CACHE, name + SEPARATOR + CANAL_RUNNING_TAG);
+        key = RedisUtils.customKey(RedisKeyPrefix.SERVICE_CACHE, name + CommonConstants.SEPARATOR + CANAL_RUNNING_TAG);
         Boolean setCanalRunning = redisTemplate.opsForValue().setIfAbsent(key, true);
         if (!Boolean.TRUE.equals(setCanalRunning)) {
             log.info("{} 已有实例建立了 Canal 连接", name);
