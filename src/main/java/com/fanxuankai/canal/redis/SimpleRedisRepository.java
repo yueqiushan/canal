@@ -15,30 +15,39 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * @author fanxuankai
  */
-public class DefaultRedisRepository<T> implements RedisReadonly<T>, RedisUniqueKeyRepository<T>,
-        RedisCombineKeyRepository<T> {
+public class SimpleRedisRepository implements RedisRepository<Object> {
 
     @Resource
     protected RedisTemplate<Object, Object> redisTemplate;
-    protected Class<T> tClass;
+    protected Class<Object> domainType;
     private CanalEntityMetadata metadata;
 
-    @SuppressWarnings("unchecked")
-    public DefaultRedisRepository() {
-        tClass =
-                (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
-        this.metadata = CanalEntityMetadataCache.getMetadata(tClass);
+    /**
+     * SimpleRedisRepository 合理的话, 应该使用泛型
+     * 由于 Javassist 不支持泛型, 暂且使用设置 domainType 的方式
+     *
+     * @param domainType 实体类型
+     */
+    protected void setDomainType(Class<Object> domainType) {
+        this.domainType = domainType;
+        this.metadata = CanalEntityMetadataCache.getMetadata(domainType);
     }
 
+    // Javassist 不支持泛型
+//    @SuppressWarnings("unchecked")
+//    public SimpleRedisRepository() {
+//        tClass = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+//        this.metadata = CanalEntityMetadataCache.getMetadata(tClass);
+//    }
+
     @Override
-    public Optional<T> findById(Object id) {
+    public Optional<Object> findById(Object id) {
         return Optional.ofNullable(getOne(id));
     }
 
@@ -48,12 +57,12 @@ public class DefaultRedisRepository<T> implements RedisReadonly<T>, RedisUniqueK
     }
 
     @Override
-    public List<T> findAll() {
+    public List<Object> findAll() {
         return getAll(RedisUtils.key(metadata.getTableMetadata().getSchema(), tableName()));
     }
 
     @Override
-    public List<T> findAllById(Iterable<Object> ids) {
+    public List<Object> findAllById(Iterable<Object> ids) {
         if (ids == null) {
             return Collections.emptyList();
         }
@@ -71,13 +80,13 @@ public class DefaultRedisRepository<T> implements RedisReadonly<T>, RedisUniqueK
     }
 
     @Override
-    public T getOne(Object id) {
+    public Object getOne(Object id) {
         return convert(redisTemplate.opsForHash().get(RedisUtils.key(metadata.getTableMetadata().getSchema(),
                 tableName()), id.toString()));
     }
 
     @Override
-    public Optional<T> findOne(UniqueKey uniqueKey) {
+    public Optional<Object> findOne(UniqueKey uniqueKey) {
         return Optional.ofNullable(getOne(uniqueKey));
     }
 
@@ -87,7 +96,7 @@ public class DefaultRedisRepository<T> implements RedisReadonly<T>, RedisUniqueK
     }
 
     @Override
-    public Optional<T> findOne(CombineKey combineKey) {
+    public Optional<Object> findOne(CombineKey combineKey) {
         List<Entry> entries = combineKey.getEntries().stream().distinct().collect(Collectors.toList());
         String suffix =
                 entries.stream().map(Entry::getName).collect(Collectors.joining(CommonConstants.SEPARATOR1));
@@ -98,7 +107,7 @@ public class DefaultRedisRepository<T> implements RedisReadonly<T>, RedisUniqueK
     }
 
     @Override
-    public List<T> findAll(UniqueKeyPro uniqueKeyPro) {
+    public List<Object> findAll(UniqueKeyPro uniqueKeyPro) {
         String key = RedisUtils.key(schema(), tableName(), uniqueKeyPro.getName());
         Set<Object> hashKeys = new HashSet<>();
         for (Object value : uniqueKeyPro.getValues()) {
@@ -108,32 +117,32 @@ public class DefaultRedisRepository<T> implements RedisReadonly<T>, RedisUniqueK
     }
 
     @Override
-    public T getOne(UniqueKey uniqueKey) {
+    public Object getOne(UniqueKey uniqueKey) {
         return convert(redisTemplate.opsForHash().get(RedisUtils.key(schema(),
                 tableName(), uniqueKey.getName()), uniqueKey.getValue().toString()));
     }
 
-    protected List<T> getAll(String key) {
+    protected List<Object> getAll(String key) {
         return convert(redisTemplate.opsForHash().values(key));
     }
 
-    protected List<T> multiGet(String key, Collection<Object> hashKeys) {
+    protected List<Object> multiGet(String key, Collection<Object> hashKeys) {
         return convert(redisTemplate.opsForHash().multiGet(key, hashKeys));
     }
 
-    protected List<T> convert(List<Object> objects) {
+    protected List<Object> convert(List<Object> objects) {
         objects = objects.stream().filter(Objects::nonNull).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(objects)) {
             return Collections.emptyList();
         }
-        return new JSONArray(objects).toJavaList(tClass);
+        return new JSONArray(objects).toJavaList(domainType);
     }
 
-    protected T convert(Object o) {
+    protected Object convert(Object o) {
         if (o == null) {
             return null;
         }
-        return JSON.parseObject(JSON.toJSONString(o), tClass);
+        return JSON.parseObject(JSON.toJSONString(o), domainType);
     }
 
     protected String schema() {

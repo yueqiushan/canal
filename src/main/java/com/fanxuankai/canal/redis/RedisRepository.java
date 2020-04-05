@@ -6,7 +6,7 @@ import java.util.Optional;
 /**
  * @author fanxuankai
  */
-public interface RedisReadonly<T> {
+public interface RedisRepository<T> extends RedisUniqueKeyRepository<T>, RedisCombineKeyRepository<T> {
     /**
      * 指定id查询
      *

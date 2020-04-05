@@ -2,7 +2,6 @@ package com.fanxuankai.canal.config;
 
 import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.annotation.EnableCanalAttributes;
-import com.fanxuankai.canal.mq.MqConsumerCache;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
@@ -25,26 +24,21 @@ public class CanalConfiguration implements ImportBeanDefinitionRegistrar {
         // 注册 CanalConfig
         // 获取 EnableCanal
         // 扫描 CanalEntity
-        // 扫描 MqConsumer
+        // 生成 RedisRepository 实现类
         // 生成 MQ 消费者类
         // 注册 OtterRunner
 
         registry.registerBeanDefinition(CanalConfig.class.getName(),
                 new AnnotatedGenericBeanDefinition(CanalConfig.class));
-
         EnableCanalAttributes.from(importingClassMetadata);
-
         Reflections r =
                 new Reflections(new ConfigurationBuilder()
                         .forPackages(EnableCanalAttributes.getScanBasePackages())
                         .setScanners(new TypeAnnotationsScanner(), new SubTypesScanner())
                 );
         CanalEntityMetadataCache.from(r);
-
-        MqConsumerCache.from(r);
-
-        MqConsumerRegister.registry(registry);
-
+        RedisRepositoryRegister.registry(r, registry);
+        MqConsumerRegister.registry(r, registry);
         registry.registerBeanDefinition(CanalRunner.class.getName(),
                 new RootBeanDefinition(CanalRunner.class));
     }

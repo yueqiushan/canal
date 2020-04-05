@@ -9,7 +9,7 @@ import java.util.Optional;
 /**
  * @author fanxuankai
  */
-public interface RedisUniqueKeyRepository<T> extends RedisReadonly<T> {
+public interface RedisUniqueKeyRepository<T> {
 
     /**
      * 查询

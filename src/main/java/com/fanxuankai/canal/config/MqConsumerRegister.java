@@ -6,39 +6,64 @@ import com.fanxuankai.canal.annotation.EnableCanalAttributes;
 import com.fanxuankai.canal.metadata.CanalEntityMetadata;
 import com.fanxuankai.canal.metadata.TableMetadata;
 import com.fanxuankai.canal.mq.MqConsumer;
-import com.fanxuankai.canal.mq.MqConsumerBeanGenerator;
-import com.fanxuankai.canal.mq.MqConsumerCache;
 import com.fanxuankai.canal.mq.MqType;
+import com.fanxuankai.canal.util.JavassistBeanGenerator;
 import com.fanxuankai.canal.util.MqUtils;
+import com.google.common.collect.Maps;
+import org.reflections.Reflections;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.Objects;
+
 /**
  * @author fanxuankai
  */
 public class MqConsumerRegister {
 
-    public static void registry(BeanDefinitionRegistry registry) {
+    public static void registry(Reflections r, BeanDefinitionRegistry registry) {
+        // key: domainType value: MqConsumer
+        Map<Class<?>, MqConsumer<?>> cache = Maps.newHashMap();
+        r.getSubTypesOf(MqConsumer.class)
+                .forEach(mqConsumerClass -> {
+                    Type[] genericInterfaces = mqConsumerClass.getGenericInterfaces();
+                    for (Type genericInterface : genericInterfaces) {
+                        ParameterizedType p = (ParameterizedType) genericInterface;
+                        if (!Objects.equals(p.getRawType(), MqConsumer.class)) {
+                            continue;
+                        }
+                        Class<?> actualTypeArgument = (Class<?>) p.getActualTypeArguments()[0];
+                        try {
+                            cache.put(actualTypeArgument,
+                                    mqConsumerClass.getConstructor().newInstance());
+                        } catch (Exception e) {
+                            throw new RuntimeException("MqConsumer 无空构造器");
+                        }
+                    }
+                });
         for (CanalEntityMetadata metadata : CanalEntityMetadataCache.getAllMqMetadata()) {
             TableMetadata tableMetadata = metadata.getTableMetadata();
-            Class<?> typeClass = metadata.getTypeClass();
-            MqConsumer<?> mqConsumer = MqConsumerCache.get(typeClass);
+            Class<?> domainType = metadata.getDomainType();
+            MqConsumer<?> mqConsumer = cache.get(domainType);
             if (mqConsumer == null) {
                 continue;
             }
             MqType mqType = EnableCanalAttributes.getMqType();
             String topic = MqUtils.name(tableMetadata.getSchema(), tableMetadata.getName());
             if (mqType == MqType.RABBIT_MQ) {
-                register(MqConsumerBeanGenerator.generateRabbitMqConsumer(typeClass, topic), mqConsumer, registry);
+                register(JavassistBeanGenerator.generateRabbitMqConsumer(domainType, topic), mqConsumer, registry);
             } else if (mqType == MqType.XXL_MQ) {
-                register(MqConsumerBeanGenerator.generateXxlMqConsumer(typeClass, topic, CanalEntry.EventType.INSERT)
+                register(JavassistBeanGenerator.generateXxlMqConsumer(domainType, topic, CanalEntry.EventType.INSERT)
                         , mqConsumer, registry);
-                register(MqConsumerBeanGenerator.generateXxlMqConsumer(typeClass, topic, CanalEntry.EventType.UPDATE)
+                register(JavassistBeanGenerator.generateXxlMqConsumer(domainType, topic, CanalEntry.EventType.UPDATE)
                         , mqConsumer, registry);
-                register(MqConsumerBeanGenerator.generateXxlMqConsumer(typeClass, topic, CanalEntry.EventType.DELETE)
+                register(JavassistBeanGenerator.generateXxlMqConsumer(domainType, topic, CanalEntry.EventType.DELETE)
                         , mqConsumer, registry);
             }
         }

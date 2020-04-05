@@ -7,7 +7,7 @@ import java.util.Optional;
 /**
  * @author fanxuankai
  */
-public interface RedisCombineKeyRepository<T> extends RedisReadonly<T> {
+public interface RedisCombineKeyRepository<T> {
 
     /**
      * 查询所有

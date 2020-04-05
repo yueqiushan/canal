@@ -12,14 +12,14 @@ import java.util.Objects;
  */
 @Getter
 public class CanalEntityMetadata {
-    private Class<?> typeClass;
+    private Class<?> domainType;
     private TableMetadata tableMetadata;
     private RedisMetadata redisMetadata;
     private MqMetadata mqMetadata;
 
-    public CanalEntityMetadata(CanalEntity canalEntity, Class<?> clazz) {
-        this.typeClass = clazz;
-        this.tableMetadata = new TableMetadata(canalEntity.table(), clazz);
+    public CanalEntityMetadata(CanalEntity canalEntity, Class<?> domainType) {
+        this.domainType = domainType;
+        this.tableMetadata = new TableMetadata(canalEntity.table(), domainType);
         this.redisMetadata = new RedisMetadata(canalEntity.redis());
         this.mqMetadata = new MqMetadata(canalEntity.mq());
     }

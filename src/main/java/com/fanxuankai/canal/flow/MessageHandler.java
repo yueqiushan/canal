@@ -148,12 +148,12 @@ public class MessageHandler implements Handler<MessageWrapper> {
                                     FilterMetadata filterMetadata) {
         List<CanalEntry.RowData> rowDataList = entryWrapper.getAllRowDataList()
                 .stream()
-                .filter(rowData -> filterRowData(rowData, filterMetadata, metadata.getTypeClass()))
+                .filter(rowData -> filterRowData(rowData, filterMetadata, metadata.getDomainType()))
                 .collect(Collectors.toList());
         entryWrapper.setAllRowDataList(rowDataList);
     }
 
-    private boolean filterRowData(CanalEntry.RowData rowData, FilterMetadata filterMetadata, Class<?> typeClass) {
+    private boolean filterRowData(CanalEntry.RowData rowData, FilterMetadata filterMetadata, Class<?> domainType) {
         Map<String, CanalEntry.Column> beforeColumnMap = CommonUtils.toColumnMap(rowData.getBeforeColumnsList());
         Map<String, CanalEntry.Column> afterColumnMap = CommonUtils.toColumnMap(rowData.getAfterColumnsList());
         List<String> updatedFields = filterMetadata.getUpdatedFields();
@@ -177,11 +177,11 @@ public class MessageHandler implements Handler<MessageWrapper> {
         if (StringUtils.isNotBlank(aviatorExpression)) {
             // 新增或者修改
             if (!CollectionUtils.isEmpty(afterColumnMap)) {
-                return Aviators.exec(CommonUtils.toMap(rowData.getAfterColumnsList()), aviatorExpression, typeClass);
+                return Aviators.exec(CommonUtils.toMap(rowData.getAfterColumnsList()), aviatorExpression, domainType);
             }
             // 删除
             if (!CollectionUtils.isEmpty(beforeColumnMap)) {
-                return Aviators.exec(CommonUtils.toMap(rowData.getBeforeColumnsList()), aviatorExpression, typeClass);
+                return Aviators.exec(CommonUtils.toMap(rowData.getBeforeColumnsList()), aviatorExpression, domainType);
             }
         }
         return true;
