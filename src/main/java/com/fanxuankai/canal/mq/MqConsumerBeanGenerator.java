@@ -31,10 +31,10 @@ public class MqConsumerBeanGenerator extends ClassLoader implements Opcodes {
         generateRabbitMqConsumer(CanalEntity.class, "t_user");
     }
 
+
     public static Class<?> generateXxlMqConsumer(Class<?> type, String topic, CanalEntry.EventType eventType) {
         try {
             ClassPool pool = ClassPool.getDefault();
-
             CtClass clazz = pool.makeClass(type.getName() + "JavassistProxyXxlMqConsumer" + eventType);
             clazz.addInterface(pool.getCtClass(IMqConsumer.class.getName()));
             ClassFile classFile = clazz.getClassFile();
@@ -50,23 +50,58 @@ public class MqConsumerBeanGenerator extends ClassLoader implements Opcodes {
                     new StringMemberValue(topic + CommonConstants.SEPARATOR + eventType, constPool));
             classAttribute.addAnnotation(mqConsumerAnnotation);
             classFile.addAttribute(classAttribute);
+            addConsumerConstructor(clazz);
+            clazz.addMethod(CtMethod.make(xxlConsumeMethodSrc(type, eventType), clazz));
+            return clazz.toClass();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-            CtClass mqConsumerCtClass = pool.get(MqConsumer.class.getName());
-
-            // 增加字段
-            CtField mqConsumerField = new CtField(mqConsumerCtClass, "mqConsumer", clazz);
-            mqConsumerField.setModifiers(Modifier.PRIVATE);
-            clazz.addField(mqConsumerField);
-
-            //添加构造函数
-            CtConstructor ctConstructor = new CtConstructor(new CtClass[]{mqConsumerCtClass}, clazz);
-            //为构造函数设置函数体
-            ctConstructor.setBody("{this.mqConsumer=$1;}");
-            //把构造函数添加到新的类中
-            clazz.addConstructor(ctConstructor);
-
-            CtMethod updateMethod = CtMethod.make(xxlConsumeMethodSrc(type, eventType), clazz);
+    public static Class<?> generateRabbitMqConsumer(Class<?> type, String topic) {
+        try {
+            ClassPool pool = ClassPool.getDefault();
+            CtClass clazz = pool.makeClass(type.getName() + "JavassistProxyRabbitMqConsumer");
+            ClassFile classFile = clazz.getClassFile();
+            ConstPool constPool = classFile.getConstPool();
+            AnnotationsAttribute classAttribute = new AnnotationsAttribute(constPool,
+                    AnnotationsAttribute.visibleTag);
+            // 类注解
+            classAttribute.addAnnotation(new Annotation(Service.class.getName(), constPool));
+            classFile.addAttribute(classAttribute);
+            addConsumerConstructor(clazz);
+            // insert 方法
+            String insertSrcFormat = "public void insert(String s) {" +
+                    "%s t = com.fanxuankai.canal.util.DomainConverter.of($1, " +
+                    "%s.class);" +
+                    "this.mqConsumer.insert(t);" +
+                    "}";
+            CtMethod insertMethod = CtMethod.make(String.format(insertSrcFormat, type.getName(), type.getName()),
+                    clazz);
+            insertMethod.getMethodInfo().addAttribute(rabbitMqMethodAttributeInfo(constPool, topic,
+                    CanalEntry.EventType.INSERT));
+            clazz.addMethod(insertMethod);
+            // update 方法
+            String updateSrcFormat = "public void update(String s) {" +
+                    "org.apache.commons.lang3.tuple.Pair p = com.fanxuankai.canal.util.DomainConverter.pairOf($1, " +
+                    "%s.class);" +
+                    "this.mqConsumer.update(p.getLeft(), p.getRight());" +
+                    "}";
+            CtMethod updateMethod = CtMethod.make(String.format(updateSrcFormat, type.getName()), clazz);
+            updateMethod.getMethodInfo().addAttribute(rabbitMqMethodAttributeInfo(constPool, topic,
+                    CanalEntry.EventType.UPDATE));
             clazz.addMethod(updateMethod);
+            // delete 方法
+            String deleteSrcFormat = "public void delete(String s) {" +
+                    "%s t = com.fanxuankai.canal.util.DomainConverter.of($1, " +
+                    "%s.class);" +
+                    "this.mqConsumer.delete(t);" +
+                    "}";
+            CtMethod deleteMethod = CtMethod.make(String.format(deleteSrcFormat, type.getName(), type.getName()),
+                    clazz);
+            deleteMethod.getMethodInfo().addAttribute(rabbitMqMethodAttributeInfo(constPool, topic,
+                    CanalEntry.EventType.DELETE));
+            clazz.addMethod(deleteMethod);
             return clazz.toClass();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -96,72 +131,20 @@ public class MqConsumerBeanGenerator extends ClassLoader implements Opcodes {
         return sb.toString();
     }
 
-    public static Class<?> generateRabbitMqConsumer(Class<?> type, String topic) {
-        try {
-            ClassPool pool = ClassPool.getDefault();
+    private static void addConsumerConstructor(CtClass clazz) throws NotFoundException, CannotCompileException {
+        CtClass mqConsumerCtClass = ClassPool.getDefault().get(MqConsumer.class.getName());
 
-            CtClass clazz = pool.makeClass(type.getName() + "JavassistProxyRabbitMqConsumer");
-            ClassFile classFile = clazz.getClassFile();
-            ConstPool constPool = classFile.getConstPool();
-            AnnotationsAttribute classAttribute = new AnnotationsAttribute(constPool,
-                    AnnotationsAttribute.visibleTag);
-            // 类注解
-            classAttribute.addAnnotation(new Annotation(Service.class.getName(), constPool));
-            classFile.addAttribute(classAttribute);
+        // 增加字段
+        CtField mqConsumerField = new CtField(mqConsumerCtClass, "mqConsumer", clazz);
+        mqConsumerField.setModifiers(Modifier.PRIVATE);
+        clazz.addField(mqConsumerField);
 
-            CtClass mqConsumerCtClass = pool.get(MqConsumer.class.getName());
-
-            // 增加字段
-            CtField mqConsumerField = new CtField(mqConsumerCtClass, "mqConsumer", clazz);
-            mqConsumerField.setModifiers(Modifier.PRIVATE);
-            clazz.addField(mqConsumerField);
-
-            //添加构造函数
-            CtConstructor ctConstructor = new CtConstructor(new CtClass[]{mqConsumerCtClass}, clazz);
-            //为构造函数设置函数体
-            ctConstructor.setBody("{this.mqConsumer=$1;}");
-            //把构造函数添加到新的类中
-            clazz.addConstructor(ctConstructor);
-
-            // insert 方法
-            String insertSrcFormat = "public void insert(String s) {" +
-                    "%s t = com.fanxuankai.canal.util.DomainConverter.of($1, " +
-                    "%s.class);" +
-                    "this.mqConsumer.insert(t);" +
-                    "}";
-            CtMethod insertMethod = CtMethod.make(String.format(insertSrcFormat, type.getName(), type.getName()),
-                    clazz);
-            insertMethod.getMethodInfo().addAttribute(rabbitMqMethodAttributeInfo(constPool, topic,
-                    CanalEntry.EventType.INSERT));
-            clazz.addMethod(insertMethod);
-
-            // update 方法
-            String updateSrcFormat = "public void update(String s) {" +
-                    "org.apache.commons.lang3.tuple.Pair p = com.fanxuankai.canal.util.DomainConverter.pairOf($1, " +
-                    "%s.class);" +
-                    "this.mqConsumer.update(p.getLeft(), p.getRight());" +
-                    "}";
-            CtMethod updateMethod = CtMethod.make(String.format(updateSrcFormat, type.getName()), clazz);
-            updateMethod.getMethodInfo().addAttribute(rabbitMqMethodAttributeInfo(constPool, topic,
-                    CanalEntry.EventType.UPDATE));
-            clazz.addMethod(updateMethod);
-
-            // delete 方法
-            String deleteSrcFormat = "public void delete(String s) {" +
-                    "%s t = com.fanxuankai.canal.util.DomainConverter.of($1, " +
-                    "%s.class);" +
-                    "this.mqConsumer.delete(t);" +
-                    "}";
-            CtMethod deleteMethod = CtMethod.make(String.format(deleteSrcFormat, type.getName(), type.getName()),
-                    clazz);
-            deleteMethod.getMethodInfo().addAttribute(rabbitMqMethodAttributeInfo(constPool, topic,
-                    CanalEntry.EventType.DELETE));
-            clazz.addMethod(deleteMethod);
-
-            return clazz.toClass();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        //添加构造函数
+        CtConstructor ctConstructor = new CtConstructor(new CtClass[]{mqConsumerCtClass}, clazz);
+        //为构造函数设置函数体
+        ctConstructor.setBody("{this.mqConsumer=$1;}");
+        //把构造函数添加到新的类中
+        clazz.addConstructor(ctConstructor);
     }
 
     private static AttributeInfo rabbitMqMethodAttributeInfo(ConstPool constPool, String topic,

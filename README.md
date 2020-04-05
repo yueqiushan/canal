@@ -18,8 +18,7 @@ https://www.processon.com/view/link/5e7d8f28e4b08e4e24428c6c
 ### 核心注解
 @EnableCanal
 - 在 spring boot 启动类使用, 表示激活 Canal 消费
-- scanEntityBasePackages 扫描 CanalEntity 所在的包 
-- scanMqConsumerBasePackages 扫描 MqConsumer 所在的包 
+- scanBasePackages 基础包, 扫描 @CanalEntity、MqConsumer 等等 
 - Redis、MQ 默认开启
 - MQ 默认使用 RabbitMQ, 可以切换为 XXL-MQ
 
@@ -52,8 +51,6 @@ canal:
   redis-instance: redis-example
   # MQ 实例名
   mq-instance: mq-example
-  # 数据库
-  schema: example
   # 间隔
   interval-millis: 1000
   # 批次数量

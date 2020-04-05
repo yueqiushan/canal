@@ -4,8 +4,6 @@ import com.fanxuankai.canal.mq.MqType;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,14 +31,9 @@ public class EnableCanalAttributes {
      */
     private static final String DEFAULT_SCHEMA_ATTRIBUTE_NAME = "schema";
     /**
-     * The default scanCanalEntityBasePackages attribute name.
+     * The default scanBasePackages attribute name.
      */
-    private static final String DEFAULT_SCAN_ENTITY_BASE_PACKAGES_ATTRIBUTE_NAME = "scanEntityBasePackages";
-    /**
-     * The default scanMqConsumerBasePackages attribute name.
-     */
-    private static final String DEFAULT_SCAN_CANAL_MQ_CONSUMER_BASE_PACKAGES_ATTRIBUTE_NAME =
-            "scanMqConsumerBasePackages";
+    private static final String DEFAULT_SCAN_BASE_PACKAGES_ATTRIBUTE_NAME = "scanBasePackages";
 
     private static AnnotationAttributes attributes = new AnnotationAttributes();
 
@@ -64,12 +57,8 @@ public class EnableCanalAttributes {
         return attributes.getString(DEFAULT_SCHEMA_ATTRIBUTE_NAME);
     }
 
-    public static List<String> getScanEntityBasePackages() {
-        return Arrays.asList(attributes.getStringArray(DEFAULT_SCAN_ENTITY_BASE_PACKAGES_ATTRIBUTE_NAME));
-    }
-
-    public static List<String> getScanMqConsumerBasePackages() {
-        return Arrays.asList(attributes.getStringArray(DEFAULT_SCAN_CANAL_MQ_CONSUMER_BASE_PACKAGES_ATTRIBUTE_NAME));
+    public static String[] getScanBasePackages() {
+        return attributes.getStringArray(DEFAULT_SCAN_BASE_PACKAGES_ATTRIBUTE_NAME);
     }
 
     public static boolean isEnableRedis() {

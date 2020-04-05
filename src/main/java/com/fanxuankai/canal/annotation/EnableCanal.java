@@ -1,6 +1,6 @@
 package com.fanxuankai.canal.annotation;
 
-import com.fanxuankai.canal.config.CanalConfigurationSelector;
+import com.fanxuankai.canal.config.CanalConfiguration;
 import com.fanxuankai.canal.mq.MqType;
 import org.springframework.context.annotation.Import;
 
@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Import(CanalConfigurationSelector.class)
+@Import(CanalConfiguration.class)
 public @interface EnableCanal {
 
     /**
@@ -29,14 +29,9 @@ public @interface EnableCanal {
     String schema();
 
     /**
-     * 扫描 @CanalEntity 基础包
+     * 基础包
      */
-    String[] scanEntityBasePackages();
-
-    /**
-     * 扫描 MqConsumer 的基础包
-     */
-    String[] scanMqConsumerBasePackages();
+    String[] scanBasePackages();
 
     /**
      * 开启 redis 缓存

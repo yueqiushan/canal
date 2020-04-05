@@ -1,7 +1,6 @@
 package com.fanxuankai.canal.mq;
 
-import com.fanxuankai.canal.annotation.EnableCanalAttributes;
-import com.fanxuankai.canal.util.ReflectionUtils;
+import org.reflections.Reflections;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -15,26 +14,24 @@ import java.util.Objects;
 public class MqConsumerCache {
     private static final Map<Class<?>, MqConsumer<?>> CACHE = new HashMap<>();
 
-    static {
-        EnableCanalAttributes.getScanMqConsumerBasePackages()
-                .forEach(basePackage ->
-                        ReflectionUtils.scanAllSubTypes(basePackage, MqConsumer.class)
-                                .forEach(mqConsumerClass -> {
-                                    Type[] genericInterfaces = mqConsumerClass.getGenericInterfaces();
-                                    for (Type genericInterface : genericInterfaces) {
-                                        ParameterizedType p = (ParameterizedType) genericInterface;
-                                        if (!Objects.equals(p.getRawType(), MqConsumer.class)) {
-                                            continue;
-                                        }
-                                        Class<?> actualTypeArgument = (Class<?>) p.getActualTypeArguments()[0];
-                                        try {
-                                            CACHE.put(actualTypeArgument,
-                                                    mqConsumerClass.getConstructor().newInstance());
-                                        } catch (Exception e) {
-                                            throw new RuntimeException("MqConsumer 无空构造器");
-                                        }
-                                    }
-                                }));
+    public static void from(Reflections r) {
+        r.getSubTypesOf(MqConsumer.class)
+                .forEach(mqConsumerClass -> {
+                    Type[] genericInterfaces = mqConsumerClass.getGenericInterfaces();
+                    for (Type genericInterface : genericInterfaces) {
+                        ParameterizedType p = (ParameterizedType) genericInterface;
+                        if (!Objects.equals(p.getRawType(), MqConsumer.class)) {
+                            continue;
+                        }
+                        Class<?> actualTypeArgument = (Class<?>) p.getActualTypeArguments()[0];
+                        try {
+                            CACHE.put(actualTypeArgument,
+                                    mqConsumerClass.getConstructor().newInstance());
+                        } catch (Exception e) {
+                            throw new RuntimeException("MqConsumer 无空构造器");
+                        }
+                    }
+                });
     }
 
     public static MqConsumer<?> get(Class<?> clazz) {

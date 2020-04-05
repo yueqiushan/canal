@@ -10,22 +10,18 @@ import com.fanxuankai.canal.mq.MqConsumerBeanGenerator;
 import com.fanxuankai.canal.mq.MqConsumerCache;
 import com.fanxuankai.canal.mq.MqType;
 import com.fanxuankai.canal.util.MqUtils;
-import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
-import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
-import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 
 /**
  * @author fanxuankai
  */
-public class ConsumerBeanRegister implements ImportBeanDefinitionRegistrar {
+public class MqConsumerRegister {
 
-    @Override
-    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+    public static void registry(BeanDefinitionRegistry registry) {
         for (CanalEntityMetadata metadata : CanalEntityMetadataCache.getAllMqMetadata()) {
             TableMetadata tableMetadata = metadata.getTableMetadata();
             Class<?> typeClass = metadata.getTypeClass();
@@ -48,11 +44,12 @@ public class ConsumerBeanRegister implements ImportBeanDefinitionRegistrar {
         }
     }
 
-    private void register(Class<?> mqConsumerBeanClass, MqConsumer<?> mqConsumer, BeanDefinitionRegistry registry) {
-        AnnotatedBeanDefinition annotatedBeanDefinition = new AnnotatedGenericBeanDefinition(mqConsumerBeanClass);
-        ConstructorArgumentValues cav = annotatedBeanDefinition.getConstructorArgumentValues();
+    private static void register(Class<?> mqConsumerBeanClass, MqConsumer<?> mqConsumer,
+                                 BeanDefinitionRegistry registry) {
+        RootBeanDefinition beanDefinition = new RootBeanDefinition(mqConsumerBeanClass);
+        ConstructorArgumentValues cav = beanDefinition.getConstructorArgumentValues();
         cav.addGenericArgumentValue(mqConsumer);
-        BeanDefinitionHolder bh = new BeanDefinitionHolder(annotatedBeanDefinition, mqConsumerBeanClass.getName());
+        BeanDefinitionHolder bh = new BeanDefinitionHolder(beanDefinition, mqConsumerBeanClass.getName());
         BeanDefinitionReaderUtils.registerBeanDefinition(bh, registry);
     }
 }

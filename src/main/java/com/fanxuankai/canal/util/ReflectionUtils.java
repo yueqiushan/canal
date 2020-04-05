@@ -1,7 +1,6 @@
 package com.fanxuankai.canal.util;
 
 import com.google.common.base.CaseFormat;
-import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -10,7 +9,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 反射工具类
@@ -18,32 +16,6 @@ import java.util.stream.Collectors;
  * @author fanxuankai
  */
 public class ReflectionUtils {
-    /**
-     * 扫描注解
-     *
-     * @param basePackage     注解所在的包
-     * @param annotationClass 注解的 class
-     * @param <A>             注解的泛型类型
-     * @return key: 注解的类 value: 注解的实例
-     */
-    public static <A extends Annotation> Map<Class<?>, A> scanAnnotation(String basePackage, Class<A> annotationClass) {
-        Reflections r = new Reflections(basePackage);
-        Set<Class<?>> s = r.getTypesAnnotatedWith(annotationClass, true);
-        return s.stream().collect(Collectors.toMap(o -> o, o -> o.getAnnotation(annotationClass)));
-    }
-
-    /**
-     * 扫描所有子类
-     *
-     * @param basePackage 基础包
-     * @param type        父类
-     * @param <T>         父类泛型
-     * @return 所有子类的 class
-     */
-    public static <T> Set<Class<? extends T>> scanAllSubTypes(String basePackage, Class<T> type) {
-        Reflections r = new Reflections(basePackage);
-        return r.getSubTypesOf(type);
-    }
 
     /**
      * 获取所有属性类型

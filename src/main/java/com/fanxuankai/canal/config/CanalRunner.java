@@ -22,7 +22,7 @@ import static com.fanxuankai.canal.constants.RedisConstants.CANAL_RUNNING_TAG;
  * @author fanxuankai
  */
 @Slf4j
-public class CanalConfigurationImporter implements ApplicationRunner {
+public class CanalRunner implements ApplicationRunner {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
     @Resource

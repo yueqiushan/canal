@@ -4,14 +4,15 @@ import com.fanxuankai.canal.metadata.CanalEntityMetadata;
 import com.fanxuankai.canal.metadata.MqMetadata;
 import com.fanxuankai.canal.metadata.RedisMetadata;
 import com.fanxuankai.canal.metadata.TableMetadata;
-import com.fanxuankai.canal.util.ReflectionUtils;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.reflections.Reflections;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -78,26 +79,25 @@ public class CanalEntityMetadataCache {
         return getMetadata(entryWrapper).getMqMetadata();
     }
 
-    public static void load() {
-        List<String> scanBasePackages = EnableCanalAttributes.getScanEntityBasePackages();
-        for (String scanBasePackage : scanBasePackages) {
-            Map<Class<?>, CanalEntity> classMqMap = ReflectionUtils.scanAnnotation(scanBasePackage, CanalEntity.class);
-            if (CollectionUtils.isEmpty(classMqMap)) {
-                return;
+    public static void from(Reflections r) {
+        Set<Class<?>> canalEntityClasses = r.getTypesAnnotatedWith(CanalEntity.class);
+        Map<? extends Class<?>, CanalEntity> map = canalEntityClasses.stream().collect(Collectors.toMap(o -> o,
+                o -> o.getAnnotation(CanalEntity.class)));
+        if (CollectionUtils.isEmpty(map)) {
+            return;
+        }
+        for (Map.Entry<? extends Class<?>, CanalEntity> entry : map.entrySet()) {
+            Class<?> aClass = entry.getKey();
+            CanalEntity canalEntity = entry.getValue();
+            CanalEntityMetadata metadata = new CanalEntityMetadata(canalEntity, aClass);
+            ALL_METADATA.add(metadata);
+            if (metadata.getRedisMetadata().isEnable()) {
+                ALL_REDIS_METADATA.add(metadata);
             }
-            for (Map.Entry<Class<?>, CanalEntity> entry : classMqMap.entrySet()) {
-                Class<?> aClass = entry.getKey();
-                CanalEntity canalEntity = entry.getValue();
-                CanalEntityMetadata metadata = new CanalEntityMetadata(canalEntity, aClass);
-                ALL_METADATA.add(metadata);
-                if (metadata.getRedisMetadata().isEnable()) {
-                    ALL_REDIS_METADATA.add(metadata);
-                }
-                if (metadata.getMqMetadata().isEnable()) {
-                    ALL_MQ_METADATA.add(metadata);
-                }
-                DATA_BY_CLASS.put(aClass, metadata);
+            if (metadata.getMqMetadata().isEnable()) {
+                ALL_MQ_METADATA.add(metadata);
             }
+            DATA_BY_CLASS.put(aClass, metadata);
         }
         DATA_BY_TABLE.putAll(ALL_METADATA.stream().collect(Collectors.toMap(CanalEntityMetadata::getTableMetadata,
                 o -> o)));
