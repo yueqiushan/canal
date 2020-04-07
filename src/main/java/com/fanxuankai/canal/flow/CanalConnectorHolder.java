@@ -38,26 +38,27 @@ public class CanalConnectorHolder {
         CanalConnector canalConnector = connectorThreadLocal.get();
         if (canalConnector == null) {
             CanalConfig canalConfig = App.getContext().getBean(CanalConfig.class);
+            String instance = connectConfig.getInstance();
+            if (canalConfig.getCluster() != null && !StringUtils.isEmpty(canalConfig.getCluster().getNodes())) {
+                canalConnector = CanalConnectors.newClusterConnector(canalConfig.getCluster().getNodes(),
+                        instance, canalConfig.getUsername(), canalConfig.getPassword());
+            } else {
+                canalConnector =
+                        CanalConnectors.newSingleConnector(
+                                new InetSocketAddress(canalConfig.getSingleNode().getHostname(),
+                                        canalConfig.getSingleNode().getPort()), instance,
+                                canalConfig.getUsername(),
+                                canalConfig.getPassword());
+            }
+            canalConnector.connect();
             int retry = 0;
+            boolean subscribeSuccess = false;
             // 异常后重试
             while (retry++ < DEFAULT_RETRY_COUNT) {
                 try {
-                    String instance = connectConfig.getInstance();
-                    if (canalConfig.getCluster() != null && !StringUtils.isEmpty(canalConfig.getCluster().getNodes())) {
-                        canalConnector = CanalConnectors.newClusterConnector(canalConfig.getCluster().getNodes(),
-                                instance, canalConfig.getUsername(), canalConfig.getPassword());
-                    } else {
-                        canalConnector =
-                                CanalConnectors.newSingleConnector(
-                                        new InetSocketAddress(canalConfig.getSingleNode().getHostname(),
-                                                canalConfig.getSingleNode().getPort()), instance,
-                                        canalConfig.getUsername(),
-                                        canalConfig.getPassword());
-                    }
-                    canalConnector.connect();
                     canalConnector.subscribe(connectConfig.getFilter());
                     canalConnector.rollback();
-                    CanalConnectorHolder.connectorThreadLocal.set(canalConnector);
+                    subscribeSuccess = true;
                     break;
                 } catch (CanalClientException e) {
                     log.error(e.getLocalizedMessage(), e);
@@ -67,6 +68,11 @@ public class CanalConnectorHolder {
                         log.error(e.getLocalizedMessage(), ex);
                     }
                 }
+            }
+            if (subscribeSuccess) {
+                CanalConnectorHolder.connectorThreadLocal.set(canalConnector);
+            } else {
+                throw new RuntimeException("Canal 订阅失败, 请稍后重试");
             }
         }
     }
