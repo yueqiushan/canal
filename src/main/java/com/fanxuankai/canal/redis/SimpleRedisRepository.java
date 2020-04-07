@@ -2,29 +2,30 @@ package com.fanxuankai.canal.redis;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.constants.CommonConstants;
 import com.fanxuankai.canal.metadata.CanalEntityMetadata;
+import com.fanxuankai.canal.metadata.CanalEntityMetadataCache;
 import com.fanxuankai.canal.model.CombineKey;
 import com.fanxuankai.canal.model.Entry;
 import com.fanxuankai.canal.model.UniqueKey;
 import com.fanxuankai.canal.model.UniqueKeyPro;
+import com.fanxuankai.canal.util.App;
 import com.fanxuankai.canal.util.RedisUtils;
 import com.google.common.collect.Sets;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * RedisRepository 实现类
+ *
  * @author fanxuankai
  */
 public class SimpleRedisRepository implements RedisRepository<Object> {
 
-    @Resource
-    protected RedisTemplate<Object, Object> redisTemplate;
+    protected RedisTemplate<String, Object> redisTemplate;
     protected Class<Object> domainType;
     private CanalEntityMetadata metadata;
 
@@ -37,6 +38,7 @@ public class SimpleRedisRepository implements RedisRepository<Object> {
     protected void setDomainType(Class<Object> domainType) {
         this.domainType = domainType;
         this.metadata = CanalEntityMetadataCache.getMetadata(domainType);
+        this.redisTemplate = App.getRedisTemplate();
     }
 
     // Javassist 不支持泛型

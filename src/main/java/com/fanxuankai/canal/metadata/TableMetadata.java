@@ -1,6 +1,5 @@
 package com.fanxuankai.canal.metadata;
 
-import com.fanxuankai.canal.annotation.EnableCanalAttributes;
 import com.fanxuankai.canal.annotation.Table;
 import com.fanxuankai.canal.util.ReflectionUtils;
 import lombok.Data;

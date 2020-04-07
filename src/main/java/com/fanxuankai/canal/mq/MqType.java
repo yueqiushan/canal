@@ -1,7 +1,7 @@
 package com.fanxuankai.canal.mq;
 
 /**
- * Mq 类型
+ * MQ 类型
  *
  * @author fanxuankai
  */

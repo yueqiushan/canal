@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * XXL-MQ 删除事件消费者
+ *
  * @author fanxuankai
  */
 public class XxlMqDeleteConsumer extends AbstractXxlMqConsumer {

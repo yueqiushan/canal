@@ -16,6 +16,11 @@ import java.util.Date;
 public class Conversions {
     private static DefaultConversionService cs;
 
+    /**
+     * 获取实例
+     *
+     * @return 单例
+     */
     public static ConversionService getInstance() {
         if (cs == null) {
             synchronized (Conversions.class) {

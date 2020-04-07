@@ -7,7 +7,7 @@ import static com.fanxuankai.canal.constants.CommonConstants.SEPARATOR;
 import static com.fanxuankai.canal.enums.RedisKeyPrefix.DB_CACHE;
 
 /**
- * redis 工具类
+ * Redis 工具类
  *
  * @author fanxuankai
  */

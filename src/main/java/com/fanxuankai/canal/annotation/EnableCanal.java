@@ -18,8 +18,8 @@ import java.lang.annotation.Target;
 public @interface EnableCanal {
 
     /**
-     * 应用名, 多实例只会创建一个 canal 连接
-     * 因为每个 canal 实例只需要一个客户端, 类似于 c/s 模式
+     * 应用名
+     * Canal 不支持多客户端, 一个 Canal 实例一个连接
      */
     String name();
 

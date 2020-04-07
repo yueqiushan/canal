@@ -5,6 +5,8 @@ import com.fanxuankai.canal.model.CombineKey;
 import java.util.Optional;
 
 /**
+ * Redis 组合键 Repository
+ *
  * @author fanxuankai
  */
 public interface RedisCombineKeyRepository<T> {

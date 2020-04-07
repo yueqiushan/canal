@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import java.io.FileOutputStream;
 
 /**
+ * Javassist Bean 简单工厂
+ *
  * @author fanxuankai
  */
 public class JavassistBeanGenerator extends ClassLoader implements Opcodes {

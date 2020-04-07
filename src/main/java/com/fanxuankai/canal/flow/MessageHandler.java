@@ -2,16 +2,16 @@ package com.fanxuankai.canal.flow;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
-import com.fanxuankai.canal.annotation.EnableCanalAttributes;
 import com.fanxuankai.canal.aviator.Aviators;
 import com.fanxuankai.canal.config.CanalConfig;
 import com.fanxuankai.canal.enums.RedisKeyPrefix;
 import com.fanxuankai.canal.metadata.CanalEntityMetadata;
+import com.fanxuankai.canal.metadata.CanalEntityMetadataCache;
+import com.fanxuankai.canal.metadata.EnableCanalAttributes;
 import com.fanxuankai.canal.metadata.FilterMetadata;
+import com.fanxuankai.canal.util.App;
 import com.fanxuankai.canal.util.CommonUtils;
 import com.fanxuankai.canal.util.RedisUtils;
-import com.fanxuankai.canal.util.ThreadPoolService;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import com.fanxuankai.canal.wrapper.MessageWrapper;
 import lombok.AllArgsConstructor;
@@ -26,7 +26,7 @@ import org.springframework.util.ObjectUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -34,6 +34,8 @@ import static com.fanxuankai.canal.constants.CommonConstants.SEPARATOR;
 import static com.fanxuankai.canal.constants.RedisConstants.LOGFILE_OFFSET;
 
 /**
+ * Message 处理器
+ *
  * @author fanxuankai
  */
 @Slf4j
@@ -42,13 +44,15 @@ public class MessageHandler implements Handler<MessageWrapper> {
 
     private Config config;
     private String logFileOffsetTag;
-    private Map<CanalEntry.EventType, MessageConsumer> consumerMap;
+    private RedisTemplate<String, Object> redisTemplate;
+    private CanalConfig canalConfig;
 
-    public MessageHandler(Config config, Map<CanalEntry.EventType, MessageConsumer> consumerMap) {
+    public MessageHandler(Config config) {
         this.config = config;
-        this.consumerMap = consumerMap;
-        logFileOffsetTag = RedisUtils.customKey(RedisKeyPrefix.SERVICE_CACHE,
+        this.logFileOffsetTag = RedisUtils.customKey(RedisKeyPrefix.SERVICE_CACHE,
                 EnableCanalAttributes.getName() + SEPARATOR + config.logfileOffsetPrefix + SEPARATOR + LOGFILE_OFFSET);
+        this.redisTemplate = App.getRedisTemplate();
+        this.canalConfig = App.getContext().getBean(CanalConfig.class);
     }
 
     @Override
@@ -59,7 +63,7 @@ public class MessageHandler implements Handler<MessageWrapper> {
         int rowChangeDataCount = 0;
         if (!CollectionUtils.isEmpty(entryWrapperList)) {
             try {
-                if (messageWrapper.getAllRawRowDataCount() >= config.getCanalConfig().getPerformanceThreshold()) {
+                if (messageWrapper.getAllRawRowDataCount() >= canalConfig.getPerformanceThreshold()) {
                     rowChangeDataCount = doHandlePerformance(entryWrapperList, messageWrapper.getBatchId());
                 } else {
                     rowChangeDataCount = doHandle(entryWrapperList, messageWrapper.getBatchId());
@@ -75,10 +79,10 @@ public class MessageHandler implements Handler<MessageWrapper> {
     private int doHandle(List<EntryWrapper> entryWrapperList, long batchId) {
         int rowChangeDataCount = 0;
         for (EntryWrapper entryWrapper : entryWrapperList) {
-            if (existsOffset(entryWrapper, batchId)) {
+            if (existsLogfileOffset(entryWrapper, batchId)) {
                 continue;
             }
-            MessageConsumer consumer = consumerMap.get(entryWrapper.getEventType());
+            MessageConsumer consumer = config.consumerMap.get(entryWrapper.getEventType());
             if (consumer == null) {
                 throw new HandleException("无消费者");
             }
@@ -89,7 +93,7 @@ public class MessageHandler implements Handler<MessageWrapper> {
                 }
                 long time = consume(consumer, process, entryWrapper);
                 rowChangeDataCount += entryWrapper.getAllRowDataList().size();
-                log(entryWrapper, batchId, time);
+                log(entryWrapper, consumer, batchId, time);
             }
         }
         return rowChangeDataCount;
@@ -111,16 +115,15 @@ public class MessageHandler implements Handler<MessageWrapper> {
     }
 
     private int doHandlePerformance(List<EntryWrapper> entryWrapperList, long batchId) throws Exception {
-        ExecutorService exec = ThreadPoolService.getInstance();
         // 异步处理
         List<Future<EntryWrapperProcess>> futureList = entryWrapperList.stream()
-                .map(entryWrapper -> exec.submit(() -> {
-                    MessageConsumer consumer = consumerMap.get(entryWrapper.getEventType());
+                .map(entryWrapper -> ForkJoinPool.commonPool().submit(() -> {
+                    MessageConsumer consumer = config.consumerMap.get(entryWrapper.getEventType());
                     if (consumer == null) {
                         throw new HandleException("无消费者");
                     }
                     Object process = null;
-                    if (!existsOffset(entryWrapper, batchId)
+                    if (!existsLogfileOffset(entryWrapper, batchId)
                             && consumer.canProcess(entryWrapper)) {
                         process = process(consumer, entryWrapper);
                     }
@@ -137,7 +140,7 @@ public class MessageHandler implements Handler<MessageWrapper> {
                 MessageConsumer consumer = entryWrapperProcess.consumer;
                 long time = consume(consumer, process, entryWrapper);
                 rowChangeDataCount += entryWrapper.getAllRowDataList().size();
-                log(entryWrapper, batchId, time);
+                log(entryWrapper, consumer, batchId, time);
             }
         }
         return rowChangeDataCount;
@@ -187,31 +190,28 @@ public class MessageHandler implements Handler<MessageWrapper> {
         return true;
     }
 
-    private boolean existsOffset(EntryWrapper entryWrapper, long batchId) throws HandleException {
+    private boolean existsLogfileOffset(EntryWrapper entryWrapper, long batchId) throws HandleException {
         String logfileName = entryWrapper.getLogfileName();
         long logfileOffset = entryWrapper.getLogfileOffset();
-        if (existsOffset(logfileName, logfileOffset)) {
-            ThreadPoolService.getInstance().execute(() -> {
-                LogExistsOffset logExistsOffset = LogExistsOffset.builder()
-                        .name(config.logfileOffsetPrefix)
-                        .batchId(batchId)
-                        .schema(entryWrapper.getSchemaName())
-                        .table(entryWrapper.getTableName())
-                        .logfileName(logfileName)
-                        .logfileOffset(logfileOffset)
-                        .build();
-                log.info("防重消费: {}", JSON.toJSONString(logExistsOffset));
-            });
+        if (existsLogfileOffset(logfileName, logfileOffset)) {
+            ExistsLogfileOffset existsLogfileOffset = ExistsLogfileOffset.builder()
+                    .name(config.logfileOffsetPrefix)
+                    .batchId(batchId)
+                    .schema(entryWrapper.getSchemaName())
+                    .table(entryWrapper.getTableName())
+                    .logfileName(logfileName)
+                    .logfileOffset(logfileOffset)
+                    .build();
+            log.info("防重消费: {}", JSON.toJSONString(existsLogfileOffset));
             return true;
         }
         return false;
     }
 
-    private void log(EntryWrapper entryWrapper, long batchId, long time) {
-        if (Objects.equals(config.canalConfig.getShowLog(), Boolean.TRUE)) {
-            HandlerLogger.asyncLog(HandlerLogger.LogInfo.builder()
-                    .canalConfig(config.canalConfig)
-                    .clazz(getClass())
+    private void log(EntryWrapper entryWrapper, MessageConsumer consumer, long batchId, long time) {
+        if (Objects.equals(canalConfig.getShowLog(), Boolean.TRUE)) {
+            MessageHandlerLogger.asyncLog(MessageHandlerLogger.LogInfo.builder()
+                    .clazz(consumer.getClass())
                     .entryWrapper(entryWrapper)
                     .batchId(batchId)
                     .time(time)
@@ -219,8 +219,8 @@ public class MessageHandler implements Handler<MessageWrapper> {
         }
     }
 
-    private boolean existsOffset(String logfileName, long offset) {
-        Object value = config.redisTemplate.opsForHash().get(logFileOffsetTag, logfileName);
+    private boolean existsLogfileOffset(String logfileName, long offset) {
+        Object value = redisTemplate.opsForHash().get(logFileOffsetTag, logfileName);
         if (value == null) {
             return false;
         }
@@ -228,21 +228,20 @@ public class MessageHandler implements Handler<MessageWrapper> {
     }
 
     private void putOffset(String logfileName, long offset) {
-        config.redisTemplate.opsForHash().put(logFileOffsetTag, logfileName, offset);
+        redisTemplate.opsForHash().put(logFileOffsetTag, logfileName, offset);
     }
 
     @Getter
     @Builder
     public static class Config {
-        private CanalConfig canalConfig;
         private String name;
-        private RedisTemplate<String, Object> redisTemplate;
         private String logfileOffsetPrefix;
+        private Map<CanalEntry.EventType, MessageConsumer> consumerMap;
     }
 
     @Getter
     @Builder
-    private static class LogExistsOffset {
+    private static class ExistsLogfileOffset {
         private String name;
         private long batchId;
         private String schema;

@@ -1,11 +1,8 @@
 package com.fanxuankai.canal.redis;
 
-import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.flow.MessageConsumer;
-import com.fanxuankai.canal.metadata.CanalEntityMetadata;
-import com.fanxuankai.canal.metadata.FilterMetadata;
-import com.fanxuankai.canal.metadata.RedisMetadata;
-import com.fanxuankai.canal.metadata.TableMetadata;
+import com.fanxuankai.canal.metadata.*;
+import com.fanxuankai.canal.util.App;
 import com.fanxuankai.canal.util.RedisUtils;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import org.apache.commons.lang3.StringUtils;
@@ -16,7 +13,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Redis 抽象处理类
+ * Redis 抽象消费者
  *
  * @author fanxuankai
  */
@@ -24,11 +21,7 @@ public abstract class AbstractRedisConsumer<R> implements MessageConsumer<R> {
 
     private static Map<TableMetadata, String> keyCache = new ConcurrentHashMap<>();
     private static Map<SuffixKey, String> suffixKeyCache = new ConcurrentHashMap<>();
-    protected RedisTemplate<String, Object> redisTemplate;
-
-    public AbstractRedisConsumer(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
+    protected RedisTemplate<String, Object> redisTemplate = App.getRedisTemplate();
 
     @Override
     public boolean canProcess(EntryWrapper entryWrapper) {

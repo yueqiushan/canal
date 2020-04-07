@@ -3,6 +3,8 @@ package com.fanxuankai.canal.flow;
 import java.util.concurrent.Flow;
 
 /**
+ * Otter 客户端接口
+ *
  * @author fanxuankai
  */
 public interface Otter {

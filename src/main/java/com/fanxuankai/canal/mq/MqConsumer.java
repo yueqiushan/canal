@@ -1,11 +1,12 @@
 package com.fanxuankai.canal.mq;
 
 /**
- * 消息消费者
+ * MQ 消费者接口
  *
  * @author fanxuankai
  */
 public interface MqConsumer<T> {
+
     /**
      * 增
      *

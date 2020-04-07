@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Redis Repository
+ *
  * @author fanxuankai
  */
 public interface RedisRepository<T> extends RedisUniqueKeyRepository<T>, RedisCombineKeyRepository<T> {

@@ -1,14 +1,13 @@
 package com.fanxuankai.canal.redis;
 
-import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.annotation.CombineKey;
 import com.fanxuankai.canal.constants.CommonConstants;
+import com.fanxuankai.canal.metadata.CanalEntityMetadataCache;
 import com.fanxuankai.canal.metadata.RedisMetadata;
 import com.fanxuankai.canal.util.CommonUtils;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import com.google.common.collect.Maps;
 import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -18,13 +17,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * 删除事件消费者
+ *
  * @author fanxuankai
  */
 public class DeleteConsumer extends AbstractRedisConsumer<Map<String, List<String>>> {
-
-    public DeleteConsumer(RedisTemplate<String, Object> redisTemplate) {
-        super(redisTemplate);
-    }
 
     @Override
     public Map<String, List<String>> process(EntryWrapper entryWrapper) {
@@ -32,7 +29,6 @@ public class DeleteConsumer extends AbstractRedisConsumer<Map<String, List<Strin
         List<String> keys = redisMetadata.getKeys();
         List<CombineKey> combineKeys = redisMetadata.getCombineKeys();
         String key = keyOf(entryWrapper);
-        HashOperations<String, Object, Object> ops = redisTemplate.opsForHash();
         Map<String, List<String>> hashKeyMap = Maps.newHashMap();
         entryWrapper.getAllRowDataList()
                 .forEach(rowData -> {

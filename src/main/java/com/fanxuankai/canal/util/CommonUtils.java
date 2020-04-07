@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * 公共工具类
+ *
  * @author fanxuankai
  */
 public class CommonUtils {

@@ -6,9 +6,11 @@ import static com.fanxuankai.canal.constants.CommonConstants.SEPARATOR;
 import static com.fanxuankai.canal.constants.QueuePrefixConstants.CANAL_2_MQ;
 
 /**
+ * MQ 队列名工具类
+ *
  * @author fanxuankai
  */
-public class MqUtils {
+public class QueueNameUtils {
     public static String name(String schema, String table) {
         return CANAL_2_MQ + SEPARATOR + schema + SEPARATOR + table;
     }

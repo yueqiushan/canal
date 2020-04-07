@@ -2,14 +2,20 @@ package com.fanxuankai.canal.wrapper;
 
 import com.fanxuankai.canal.flow.Context;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author fanxuankai
  */
 public class ContextWrapper {
+
     private Context raw;
+
     @Getter
     private MessageWrapper messageWrapper;
+
+    @Setter
+    private boolean handleError;
 
     public ContextWrapper(Context raw) {
         this.raw = raw;
@@ -17,6 +23,11 @@ public class ContextWrapper {
     }
 
     public void confirm() {
-        raw.ack();
+        if (handleError) {
+            raw.rollback();
+        } else {
+            raw.ack();
+        }
     }
+
 }

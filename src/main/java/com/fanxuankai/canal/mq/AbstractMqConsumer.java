@@ -3,15 +3,10 @@ package com.fanxuankai.canal.mq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
-import com.fanxuankai.canal.constants.QueuePrefixConstants;
 import com.fanxuankai.canal.flow.MessageConsumer;
-import com.fanxuankai.canal.metadata.CanalEntityMetadata;
-import com.fanxuankai.canal.metadata.FilterMetadata;
-import com.fanxuankai.canal.metadata.MqMetadata;
-import com.fanxuankai.canal.metadata.TableMetadata;
+import com.fanxuankai.canal.metadata.*;
 import com.fanxuankai.canal.util.CommonUtils;
-import com.fanxuankai.canal.util.MqUtils;
+import com.fanxuankai.canal.util.QueueNameUtils;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,13 +15,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Mq 抽象处理器
+ * Mq 抽象消费者
  *
  * @author fanxuankai
  */
 public abstract class AbstractMqConsumer implements MessageConsumer<MessageInfo> {
-
-    private static final String CANAL_2_MQ = QueuePrefixConstants.CANAL_2_MQ;
 
     @Override
     public boolean canProcess(EntryWrapper entryWrapper) {
@@ -43,10 +36,10 @@ public abstract class AbstractMqConsumer implements MessageConsumer<MessageInfo>
         CanalEntityMetadata entityMetadata = CanalEntityMetadataCache.getMetadata(entryWrapper);
         MqMetadata metadata = entityMetadata.getMqMetadata();
         if (StringUtils.isNotBlank(metadata.getName())) {
-            return MqUtils.customName(metadata.getName(), eventType);
+            return QueueNameUtils.customName(metadata.getName(), eventType);
         }
         TableMetadata tableMetadata = entityMetadata.getTableMetadata();
-        return MqUtils.name(tableMetadata.getSchema(), tableMetadata.getName(), eventType);
+        return QueueNameUtils.name(tableMetadata.getSchema(), tableMetadata.getName(), eventType);
     }
 
     protected String json(List<CanalEntry.Column> columnList) {

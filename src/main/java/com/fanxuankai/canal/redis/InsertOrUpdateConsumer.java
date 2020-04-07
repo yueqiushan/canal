@@ -1,14 +1,13 @@
 package com.fanxuankai.canal.redis;
 
-import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
 import com.fanxuankai.canal.annotation.CombineKey;
 import com.fanxuankai.canal.constants.CommonConstants;
+import com.fanxuankai.canal.metadata.CanalEntityMetadataCache;
 import com.fanxuankai.canal.metadata.RedisMetadata;
 import com.fanxuankai.canal.util.CommonUtils;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import com.google.common.collect.Maps;
 import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Arrays;
@@ -17,13 +16,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * 新增或者修改事件消费者
+ *
  * @author fanxuankai
  */
 public class InsertOrUpdateConsumer extends AbstractRedisConsumer<Map<String, Map<String, Object>>> {
-
-    public InsertOrUpdateConsumer(RedisTemplate<String, Object> redisTemplate) {
-        super(redisTemplate);
-    }
 
     @Override
     public Map<String, Map<String, Object>> process(EntryWrapper entryWrapper) {
@@ -71,8 +68,8 @@ public class InsertOrUpdateConsumer extends AbstractRedisConsumer<Map<String, Ma
 
     @Override
     public void consume(Map<String, Map<String, Object>> stringMapMap) {
-        HashOperations<String, Object, Object> hash = redisTemplate.opsForHash();
         if (!stringMapMap.isEmpty()) {
+            HashOperations<String, Object, Object> hash = redisTemplate.opsForHash();
             stringMapMap.forEach(hash::putAll);
         }
     }

@@ -15,6 +15,8 @@ import java.lang.reflect.Type;
 import java.util.Objects;
 
 /**
+ * 自动实现自定的 RedisRepository 接口的实现类且注册为 Spring bean
+ *
  * @author fanxuankai
  */
 public class RedisRepositoryRegister {
@@ -30,8 +32,8 @@ public class RedisRepositoryRegister {
                             continue;
                         }
                         Class<?> domainType = (Class<?>) p.getActualTypeArguments()[0];
-                        BeanDefinition beanDefinition =
-                                new AnnotatedGenericBeanDefinition(JavassistBeanGenerator.generateRedisRepository(redisRepositoryClass, domainType));
+                        BeanDefinition beanDefinition = new AnnotatedGenericBeanDefinition(
+                                JavassistBeanGenerator.generateRedisRepository(redisRepositoryClass, domainType));
                         BeanDefinitionHolder bh = new BeanDefinitionHolder(beanDefinition,
                                 redisRepositoryClass.getName());
                         BeanDefinitionReaderUtils.registerBeanDefinition(bh, registry);

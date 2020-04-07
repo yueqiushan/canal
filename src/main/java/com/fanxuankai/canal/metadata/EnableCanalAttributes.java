@@ -1,5 +1,6 @@
-package com.fanxuankai.canal.annotation;
+package com.fanxuankai.canal.metadata;
 
+import com.fanxuankai.canal.annotation.EnableCanal;
 import com.fanxuankai.canal.mq.MqType;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
@@ -7,6 +8,8 @@ import org.springframework.core.type.AnnotationMetadata;
 import java.util.Map;
 
 /**
+ * EnableCanal 注解属性工具类
+ *
  * @author fanxuankai
  */
 public class EnableCanalAttributes {

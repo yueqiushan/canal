@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.Flow;
 
 /**
+ * Canal 事务确认订阅者
+ *
  * @author fanxuankai
  */
 @Slf4j

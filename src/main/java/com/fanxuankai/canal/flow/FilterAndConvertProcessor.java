@@ -16,11 +16,13 @@ import java.util.stream.Collectors;
 import static com.alibaba.otter.canal.protocol.CanalEntry.EventType.*;
 
 /**
+ * 消息过滤和转换订阅者
+ *
  * @author fanxuankai
  */
 @Slf4j
-public class FilterAndConvertProcessor extends SubmissionPublisher<ContextWrapper> implements Flow.Processor<Context,
-        ContextWrapper> {
+public class FilterAndConvertProcessor extends SubmissionPublisher<ContextWrapper>
+        implements Flow.Processor<Context, ContextWrapper> {
 
     /**
      * 过滤的事件类型

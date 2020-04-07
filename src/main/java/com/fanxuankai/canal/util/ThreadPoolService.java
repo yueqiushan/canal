@@ -3,7 +3,10 @@ package com.fanxuankai.canal.util;
 import com.alibaba.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 线程池, 枚举方式实现单例模式
@@ -27,18 +30,14 @@ public class ThreadPoolService {
         private ExecutorService executorService;
 
         Singleton() {
-            executorService = forkJoinPool();
+            executorService = threadPoolExecutor();
             Runtime.getRuntime().addShutdownHook(new Thread(() -> executorService.shutdown()));
         }
 
-        private ExecutorService forkJoinPool() {
-            return ForkJoinPool.commonPool();
-        }
-
         private ThreadPoolExecutor threadPoolExecutor() {
-            ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("canal-%d").build();
-            return new ThreadPoolExecutor(20, 90, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(),
-                    threadFactory);
+            return new ThreadPoolExecutor(20, 90, 0L, TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("canal-%d").build());
         }
     }
+
 }

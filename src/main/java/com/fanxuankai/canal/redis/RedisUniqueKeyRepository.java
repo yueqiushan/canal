@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Redis 唯一键 Repository
+ *
  * @author fanxuankai
  */
 public interface RedisUniqueKeyRepository<T> {

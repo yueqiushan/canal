@@ -3,13 +3,15 @@ package com.fanxuankai.canal.flow;
 import com.fanxuankai.canal.wrapper.ContextWrapper;
 import com.fanxuankai.canal.wrapper.MessageWrapper;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 
 /**
+ * 处理订阅者
+ *
  * @author fanxuankai
  */
 @Slf4j
@@ -32,9 +34,15 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
     public void onNext(ContextWrapper item) {
         log.info("{} Handle batchId: {}", config.name, item.getMessageWrapper().getBatchId());
         if (!config.skip) {
-            config.handler.handle(item.getMessageWrapper());
+            try {
+                config.handler.handle(item.getMessageWrapper());
+            } catch (HandleException e) {
+                log.error(e.getLocalizedMessage(), e);
+                item.setHandleError(true);
+            } finally {
+                submit(item);
+            }
         }
-        submit(item);
         subscription.request(1);
     }
 
@@ -48,7 +56,7 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
         log.info("{} Done", config.name);
     }
 
-    @Data
+    @Getter
     @Builder
     public static class Config {
         private Handler<MessageWrapper> handler;

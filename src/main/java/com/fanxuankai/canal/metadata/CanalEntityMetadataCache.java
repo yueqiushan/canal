@@ -1,9 +1,7 @@
-package com.fanxuankai.canal.annotation;
+package com.fanxuankai.canal.metadata;
 
-import com.fanxuankai.canal.metadata.CanalEntityMetadata;
-import com.fanxuankai.canal.metadata.MqMetadata;
-import com.fanxuankai.canal.metadata.RedisMetadata;
-import com.fanxuankai.canal.metadata.TableMetadata;
+import com.fanxuankai.canal.annotation.CanalEntity;
+import com.fanxuankai.canal.constants.CommonConstants;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -16,6 +14,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * CanalEntity 注解元数据缓存
+ *
  * @author fanxuankai
  */
 public class CanalEntityMetadataCache {
@@ -24,11 +24,7 @@ public class CanalEntityMetadataCache {
     private static final List<CanalEntityMetadata> ALL_MQ_METADATA = Lists.newArrayList();
     private static final List<CanalEntityMetadata> ALL_REDIS_METADATA = Lists.newArrayList();
     private static final Map<Class<?>, CanalEntityMetadata> DATA_BY_CLASS = Maps.newHashMap();
-    private static final Map<TableMetadata, CanalEntityMetadata> DATA_BY_TABLE = Maps.newHashMap();
-
-    public static List<CanalEntityMetadata> getAllMetadata() {
-        return ALL_METADATA;
-    }
+    private static final Map<String, CanalEntityMetadata> DATA_BY_TABLE = Maps.newHashMap();
 
     public static List<CanalEntityMetadata> getAllMqMetadata() {
         return ALL_MQ_METADATA;
@@ -42,47 +38,18 @@ public class CanalEntityMetadataCache {
         return DATA_BY_CLASS.get(clazz);
     }
 
-    public static CanalEntityMetadata getMetadata(TableMetadata tableMetadata) {
-        return DATA_BY_TABLE.get(tableMetadata);
-    }
-
     public static CanalEntityMetadata getMetadata(EntryWrapper entryWrapper) {
-        TableMetadata tableMetadata = new TableMetadata(entryWrapper.getSchemaName(), entryWrapper.getTableName());
-        return getMetadata(tableMetadata);
-    }
-
-    public static TableMetadata getTableMetadata(EntryWrapper entryWrapper) {
-        return getMetadata(entryWrapper).getTableMetadata();
-    }
-
-    public static RedisMetadata getRedisMetadata(Class<?> clazz) {
-        return getMetadata(clazz).getRedisMetadata();
-    }
-
-    public static RedisMetadata getRedisMetadata(TableMetadata tableMetadata) {
-        return getMetadata(tableMetadata).getRedisMetadata();
+        return DATA_BY_TABLE.get(entryWrapper.getSchemaName() + CommonConstants.SEPARATOR + entryWrapper.getTableName());
     }
 
     public static RedisMetadata getRedisMetadata(EntryWrapper entryWrapper) {
         return getMetadata(entryWrapper).getRedisMetadata();
     }
 
-    public static MqMetadata getMqMetadata(Class<?> clazz) {
-        return getMetadata(clazz).getMqMetadata();
-    }
-
-    public static MqMetadata getMqMetadata(TableMetadata tableMetadata) {
-        return getMetadata(tableMetadata).getMqMetadata();
-    }
-
-    public static MqMetadata getMqMetadata(EntryWrapper entryWrapper) {
-        return getMetadata(entryWrapper).getMqMetadata();
-    }
-
     public static void from(Reflections r) {
         Set<Class<?>> canalEntityClasses = r.getTypesAnnotatedWith(CanalEntity.class);
-        Map<? extends Class<?>, CanalEntity> map = canalEntityClasses.stream().collect(Collectors.toMap(o -> o,
-                o -> o.getAnnotation(CanalEntity.class)));
+        Map<? extends Class<?>, CanalEntity> map = canalEntityClasses.stream()
+                .collect(Collectors.toMap(o -> o, o -> o.getAnnotation(CanalEntity.class)));
         if (CollectionUtils.isEmpty(map)) {
             return;
         }
@@ -99,7 +66,10 @@ public class CanalEntityMetadataCache {
             }
             DATA_BY_CLASS.put(aClass, metadata);
         }
-        DATA_BY_TABLE.putAll(ALL_METADATA.stream().collect(Collectors.toMap(CanalEntityMetadata::getTableMetadata,
-                o -> o)));
+        DATA_BY_TABLE.putAll(ALL_METADATA.stream()
+                .collect(Collectors.toMap(o -> {
+                    TableMetadata tableMetadata = o.getTableMetadata();
+                    return tableMetadata.getSchema() + CommonConstants.SEPARATOR + tableMetadata.getName();
+                }, o -> o)));
     }
 }

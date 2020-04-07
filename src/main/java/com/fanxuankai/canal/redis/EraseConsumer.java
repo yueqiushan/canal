@@ -1,20 +1,17 @@
 package com.fanxuankai.canal.redis;
 
 import com.fanxuankai.canal.wrapper.EntryWrapper;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.Set;
 
 /**
+ * 数据库删除事件消费者
+ *
  * @author fanxuankai
  */
 public class EraseConsumer extends AbstractRedisConsumer<Set<String>> {
-
-    public EraseConsumer(RedisTemplate<String, Object> redisTemplate) {
-        super(redisTemplate);
-    }
 
     @Override
     public Set<String> process(EntryWrapper entryWrapper) {

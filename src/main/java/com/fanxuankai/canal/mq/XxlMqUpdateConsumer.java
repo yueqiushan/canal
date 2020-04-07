@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * XXL-MQ 更新事件消费者
+ *
  * @author fanxuankai
  */
 public class XxlMqUpdateConsumer extends AbstractXxlMqConsumer {

@@ -6,6 +6,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.List;
 
 /**
+ * 实体类与 JSON 字符串的转换
+ *
  * @author fanxuankai
  */
 public class DomainConverter {
@@ -38,13 +40,6 @@ public class DomainConverter {
             return Pair.of(null, null);
         }
         return Pair.of(ts.get(0), ts.get(1));
-    }
-
-    public static void main(String[] args) {
-        Pair<Long, Long> p = pairOf("", Long.class);
-        p.getLeft();
-        p.getRight();
-
     }
 
 }

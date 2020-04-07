@@ -1,7 +1,7 @@
 package com.fanxuankai.canal.flow;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
-import com.fanxuankai.canal.annotation.CanalEntityMetadataCache;
+import com.fanxuankai.canal.metadata.CanalEntityMetadataCache;
 import com.fanxuankai.canal.config.CanalConfig;
 import com.fanxuankai.canal.metadata.CanalEntityMetadata;
 import com.fanxuankai.canal.metadata.TableMetadata;
@@ -9,8 +9,7 @@ import com.fanxuankai.canal.mq.*;
 import com.fanxuankai.canal.redis.DeleteConsumer;
 import com.fanxuankai.canal.redis.EraseConsumer;
 import com.fanxuankai.canal.redis.InsertOrUpdateConsumer;
-import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.fanxuankai.canal.util.App;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -31,28 +30,25 @@ public class OtterFactory {
     /**
      * Redis Otter
      *
-     * @param canalConfig   配置文件
-     * @param redisTemplate RedisTemplate
      * @return 没有订阅数据库表格返回 empty
      */
-    public static Optional<Otter> getRedisOtter(CanalConfig canalConfig, RedisTemplate<String, Object> redisTemplate) {
+    public static Optional<Otter> getRedisOtter() {
         String name = "Redis";
-        return makeConnectConfig(canalConfig, CanalEntityMetadataCache.getAllRedisMqMetadata(),
-                canalConfig.getRedisInstance(), name)
+        return makeConnectConfig(CanalEntityMetadataCache.getAllRedisMqMetadata(),
+                App.getContext().getBean(CanalConfig.class).getRedisInstance(), name)
                 .map(connectConfig -> {
-                    Map<CanalEntry.EventType, MessageConsumer> handlerMap = new HashMap<>(4);
-                    MessageConsumer insertOrUpdateConsumer = new InsertOrUpdateConsumer(redisTemplate);
-                    handlerMap.put(CanalEntry.EventType.INSERT, insertOrUpdateConsumer);
-                    handlerMap.put(CanalEntry.EventType.UPDATE, insertOrUpdateConsumer);
-                    handlerMap.put(CanalEntry.EventType.DELETE, new DeleteConsumer(redisTemplate));
-                    handlerMap.put(CanalEntry.EventType.ERASE, new EraseConsumer(redisTemplate));
+                    Map<CanalEntry.EventType, MessageConsumer> consumerMap = new HashMap<>(4);
+                    MessageConsumer insertOrUpdateConsumer = new InsertOrUpdateConsumer();
+                    consumerMap.put(CanalEntry.EventType.INSERT, insertOrUpdateConsumer);
+                    consumerMap.put(CanalEntry.EventType.UPDATE, insertOrUpdateConsumer);
+                    consumerMap.put(CanalEntry.EventType.DELETE, new DeleteConsumer());
+                    consumerMap.put(CanalEntry.EventType.ERASE, new EraseConsumer());
                     HandleSubscriber.Config subscriberConfig = HandleSubscriber.Config.builder()
                             .handler(new MessageHandler(MessageHandler.Config.builder()
-                                    .canalConfig(canalConfig)
                                     .logfileOffsetPrefix(REDIS)
-                                    .redisTemplate(redisTemplate)
                                     .name(name)
-                                    .build(), handlerMap))
+                                    .consumerMap(consumerMap)
+                                    .build()))
                             .name(name)
                             .build();
                     return OtterFlow.withFlow(connectConfig, subscriberConfig);
@@ -62,28 +58,24 @@ public class OtterFactory {
     /**
      * RabbitMQ Otter
      *
-     * @param canalConfig   配置文件
-     * @param amqpTemplate  AmqpTemplate
-     * @param redisTemplate RedisTemplate
      * @return 没有订阅数据库表格返回 empty
      */
-    public static Optional<Otter> getRabbitMqOtter(CanalConfig canalConfig, AmqpTemplate amqpTemplate,
-                                                   RedisTemplate<String, Object> redisTemplate) {
+    public static Optional<Otter> getRabbitMqOtter() {
         String name = "RabbitMq";
-        return makeConnectConfig(canalConfig, CanalEntityMetadataCache.getAllMqMetadata(),
+        CanalConfig canalConfig = App.getContext().getBean(CanalConfig.class);
+        return makeConnectConfig(CanalEntityMetadataCache.getAllMqMetadata(),
                 canalConfig.getMqInstance(), name)
                 .map(connectConfig -> {
-                    Map<CanalEntry.EventType, MessageConsumer> handlerMap = new HashMap<>(3);
-                    handlerMap.put(CanalEntry.EventType.INSERT, new RabbitMqInsertConsumer(amqpTemplate));
-                    handlerMap.put(CanalEntry.EventType.UPDATE, new RabbitMqUpdateConsumer(amqpTemplate));
-                    handlerMap.put(CanalEntry.EventType.DELETE, new RabbitMqDeleteConsumer(amqpTemplate));
+                    Map<CanalEntry.EventType, MessageConsumer> consumerMap = new HashMap<>(3);
+                    consumerMap.put(CanalEntry.EventType.INSERT, new RabbitMqInsertConsumer());
+                    consumerMap.put(CanalEntry.EventType.UPDATE, new RabbitMqUpdateConsumer());
+                    consumerMap.put(CanalEntry.EventType.DELETE, new RabbitMqDeleteConsumer());
                     HandleSubscriber.Config subscriberConfig = HandleSubscriber.Config.builder()
                             .handler(new MessageHandler(MessageHandler.Config.builder()
-                                    .canalConfig(canalConfig)
                                     .logfileOffsetPrefix(RABBIT_MQ)
-                                    .redisTemplate(redisTemplate)
                                     .name(name)
-                                    .build(), handlerMap))
+                                    .consumerMap(consumerMap)
+                                    .build()))
                             .name(name)
                             .skip(Objects.equals(canalConfig.getSkipMq(), Boolean.TRUE))
                             .build();
@@ -94,26 +86,24 @@ public class OtterFactory {
     /**
      * XXL-MQ Otter
      *
-     * @param canalConfig   配置文件
-     * @param redisTemplate RedisTemplate
      * @return 没有订阅数据库表格返回 empty
      */
-    public static Optional<Otter> getXxlMqOtter(CanalConfig canalConfig, RedisTemplate<String, Object> redisTemplate) {
+    public static Optional<Otter> getXxlMqOtter() {
         String name = "XxlMq";
-        return makeConnectConfig(canalConfig, CanalEntityMetadataCache.getAllMqMetadata(),
+        CanalConfig canalConfig = App.getContext().getBean(CanalConfig.class);
+        return makeConnectConfig(CanalEntityMetadataCache.getAllMqMetadata(),
                 canalConfig.getMqInstance(), name)
                 .map(connectConfig -> {
-                    Map<CanalEntry.EventType, MessageConsumer> handlerMap = new HashMap<>(3);
-                    handlerMap.put(CanalEntry.EventType.INSERT, new XxlMqInsertConsumer());
-                    handlerMap.put(CanalEntry.EventType.UPDATE, new XxlMqUpdateConsumer());
-                    handlerMap.put(CanalEntry.EventType.DELETE, new XxlMqDeleteConsumer());
+                    Map<CanalEntry.EventType, MessageConsumer> consumerMap = new HashMap<>(3);
+                    consumerMap.put(CanalEntry.EventType.INSERT, new XxlMqInsertConsumer());
+                    consumerMap.put(CanalEntry.EventType.UPDATE, new XxlMqUpdateConsumer());
+                    consumerMap.put(CanalEntry.EventType.DELETE, new XxlMqDeleteConsumer());
                     HandleSubscriber.Config subscriberConfig = HandleSubscriber.Config.builder()
                             .handler(new MessageHandler(MessageHandler.Config.builder()
-                                    .canalConfig(canalConfig)
                                     .logfileOffsetPrefix(XXL_MQ)
-                                    .redisTemplate(redisTemplate)
                                     .name(name)
-                                    .build(), handlerMap))
+                                    .consumerMap(consumerMap)
+                                    .build()))
                             .name(name)
                             .skip(Objects.equals(canalConfig.getSkipMq(), Boolean.TRUE))
                             .build();
@@ -124,14 +114,12 @@ public class OtterFactory {
     /**
      * 创建 Otter 连接所需配置文件
      *
-     * @param canalConfig             配置文件
      * @param canalEntityMetadataList 所有 canal entity
      * @param instance                canal 实例
      * @param name                    订阅者
      * @return Optional<ConnectConfig>
      */
-    private static Optional<ConnectConfig> makeConnectConfig(CanalConfig canalConfig,
-                                                             List<CanalEntityMetadata> canalEntityMetadataList,
+    private static Optional<ConnectConfig> makeConnectConfig(List<CanalEntityMetadata> canalEntityMetadataList,
                                                              String instance, String name) {
         List<TableMetadata> tableMetadataList = canalEntityMetadataList.stream()
                 .map(CanalEntityMetadata::getTableMetadata)
@@ -142,7 +130,6 @@ public class OtterFactory {
         }
         String filter = filterString(tableMetadataList);
         ConnectConfig connectConfig = ConnectConfig.builder()
-                .canalConfig(canalConfig)
                 .filter(filter)
                 .instance(instance)
                 .subscriberName(name)

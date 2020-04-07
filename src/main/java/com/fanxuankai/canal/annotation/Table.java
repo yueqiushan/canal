@@ -11,12 +11,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Table {
     /**
-     * 数据库名, 默认为 canal 配置的 schema
+     * 数据库名, 默认为 @EnableCanal.schema()
      */
     String schema() default "";
 
     /**
-     * 数据库表名, 默认为 javax.persistence.Table | 实体类名转下划线
+     * 数据库表名
+     * 如果使用了 javax.persistence.Table 注解, 取 @Table.value(), 否则取实体类名转下划线
      */
     String name() default "";
 }

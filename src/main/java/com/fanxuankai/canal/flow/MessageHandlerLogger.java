@@ -3,16 +3,17 @@ package com.fanxuankai.canal.flow;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 import com.fanxuankai.canal.config.CanalConfig;
-import com.fanxuankai.canal.util.ThreadPoolService;
+import com.fanxuankai.canal.util.App;
 import com.fanxuankai.canal.wrapper.EntryWrapper;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 import static com.alibaba.otter.canal.protocol.CanalEntry.EventType.*;
@@ -21,13 +22,13 @@ import static com.alibaba.otter.canal.protocol.CanalEntry.EventType.*;
  * @author fanxuankai
  */
 @Slf4j
-public class HandlerLogger {
+public class MessageHandlerLogger {
 
     public static void asyncLog(LogInfo logInfo) {
-        ThreadPoolService.getInstance().execute(() -> {
+        ForkJoinPool.commonPool().execute(() -> {
             EntryWrapper entryWrapper = logInfo.entryWrapper;
-            LogRowChange build = LogRowChange.builder()
-                    .handler(logInfo.clazz.getClass().getName())
+            log.info(JSON.toJSONString(LogRowChange.builder()
+                    .handler(logInfo.clazz.getName())
                     .batchId(logInfo.batchId)
                     .file(entryWrapper.getLogfileName())
                     .offset(entryWrapper.getLogfileOffset())
@@ -36,14 +37,14 @@ public class HandlerLogger {
                     .eventType(entryWrapper.getEventType())
                     .count(entryWrapper.getAllRowDataList().size())
                     .time(logInfo.time)
-                    .build();
-            log.info(JSON.toJSONString(build));
-            if (Objects.equals(logInfo.getCanalConfig().getShowRowChange(), Boolean.TRUE)) {
-                List<List<LogColumn>> list = entryWrapper.getAllRowDataList().stream().map(o -> logColumns(o,
-                        entryWrapper.getEventType()))
+                    .build()));
+            CanalConfig canalConfig = App.getContext().getBean(CanalConfig.class);
+            if (Objects.equals(canalConfig.getShowRowChange(), Boolean.TRUE)) {
+                List<List<LogColumn>> list = entryWrapper.getAllRowDataList().stream()
+                        .map(o -> logColumns(o, entryWrapper.getEventType()))
                         .collect(Collectors.toList());
-                log.info(JSON.toJSONString(list, Objects.equals(logInfo.getCanalConfig().getFormatRowChangeLog(),
-                        Boolean.TRUE)));
+                log.info(JSON.toJSONString(list,
+                        Objects.equals(canalConfig.getFormatRowChangeLog(), Boolean.TRUE)));
             }
         });
     }
@@ -74,10 +75,8 @@ public class HandlerLogger {
         return Collections.emptyList();
     }
 
-    @Data
     @Builder
     public static class LogInfo {
-        private CanalConfig canalConfig;
         private Class<?> clazz;
         private EntryWrapper entryWrapper;
         private long batchId;
@@ -85,7 +84,7 @@ public class HandlerLogger {
     }
 
     @Builder
-    @Data
+    @Getter
     private static class LogRowChange {
         private String handler;
         private Long batchId;
@@ -98,8 +97,8 @@ public class HandlerLogger {
         private Long time;
     }
 
-    @Data
     @Builder
+    @Getter
     public static class LogColumn {
         private String name;
         private String oldValue;
