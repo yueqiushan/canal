@@ -80,9 +80,7 @@ public class CanalConfig {
     private Integer performanceThreshold = 10000;
 
     /**
-     * 微服务无论是否做了集群, 都只会同时存在一个节点启动 Canal 服务;
-     * 默认为 true, 会检查该服务是否存有节点启动了 Canal 服务, 答案是否的话, 当前节点会启动 Canal 服务;
-     * 如果设为 false, 该服务启动后, 不会再次尝试启动 Canal 服务.
+     * 暂不支持集群, 设置该参数为 true 时, 当启动了 Canal 服务的节点停止后可以及时补位
      */
     private Boolean retryStart = Boolean.TRUE;
 
