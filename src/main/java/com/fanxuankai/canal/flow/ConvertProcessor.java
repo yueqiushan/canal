@@ -4,18 +4,21 @@ import com.fanxuankai.canal.wrapper.ContextWrapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Flow;
+import java.util.concurrent.SubmissionPublisher;
 
 /**
- * Canal 事务确认订阅者
+ * 消息转换订阅者
  *
  * @author fanxuankai
  */
 @Slf4j
-public class ConfirmSubscriber implements Flow.Subscriber<ContextWrapper> {
+public class ConvertProcessor extends SubmissionPublisher<ContextWrapper>
+        implements Flow.Processor<Context, ContextWrapper> {
+
     private Flow.Subscription subscription;
     private String name;
 
-    public ConfirmSubscriber(String name) {
+    public ConvertProcessor(String name) {
         this.name = name;
     }
 
@@ -26,11 +29,11 @@ public class ConfirmSubscriber implements Flow.Subscriber<ContextWrapper> {
     }
 
     @Override
-    public void onNext(ContextWrapper item) {
-        if (item.getMessageWrapper().getAllRawRowDataCount() > 0) {
-            log.info("{} Confirm batchId: {}", name, item.getMessageWrapper().getBatchId());
+    public void onNext(Context item) {
+        if (!item.getMessage().getEntries().isEmpty()) {
+            log.info("{} Filter&Convert batchId: {}", name, item.getMessage().getId());
         }
-        item.confirm();
+        submit(new ContextWrapper(item));
         subscription.request(1);
     }
 

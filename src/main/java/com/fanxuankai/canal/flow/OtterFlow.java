@@ -14,11 +14,11 @@ public class OtterFlow {
     public static Otter withFlow(ConnectConfig connectConfig, HandleSubscriber.Config handleSubscriberConfig) {
         Otter otter = new SimpleOtter(connectConfig);
         String subscriberName = handleSubscriberConfig.getName();
-        FilterAndConvertProcessor filterAndConvertProcessor = new FilterAndConvertProcessor(subscriberName);
+        ConvertProcessor convertProcessor = new ConvertProcessor(subscriberName);
         HandleSubscriber handleSubscriber = new HandleSubscriber(handleSubscriberConfig);
         ConfirmSubscriber confirmSubscriber = new ConfirmSubscriber(subscriberName);
-        otter.subscribe(filterAndConvertProcessor);
-        filterAndConvertProcessor.subscribe(handleSubscriber);
+        otter.subscribe(convertProcessor);
+        convertProcessor.subscribe(handleSubscriber);
         handleSubscriber.subscribe(confirmSubscriber);
         return otter;
     }

@@ -7,10 +7,14 @@ import com.fanxuankai.canal.metadata.EnableCanalAttributes;
 import com.fanxuankai.canal.metadata.TableMetadata;
 import com.fanxuankai.canal.mq.MqConsumer;
 import com.fanxuankai.canal.mq.MqType;
+import com.fanxuankai.canal.redis.RedisRepository;
+import com.fanxuankai.canal.redis.SimpleRedisRepository;
 import com.fanxuankai.canal.util.JavassistBeanGenerator;
 import com.fanxuankai.canal.util.QueueNameUtils;
 import com.google.common.collect.Maps;
 import org.reflections.Reflections;
+import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -23,13 +27,28 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * 自动生成 MQ 消费者且注册为 Spring bean
- *
  * @author fanxuankai
  */
-public class MqConsumerRegister {
+public class BeanRegistry {
 
-    public static void registry(Reflections r, BeanDefinitionRegistry registry) {
+    /**
+     * 注册 bean
+     *
+     * @param r        Reflections 对象
+     * @param registry BeanDefinitionRegistry
+     */
+    public static void register(Reflections r, BeanDefinitionRegistry registry) {
+        registerMqConsumer(r, registry);
+        registerRedisRepository(r, registry);
+    }
+
+    /**
+     * 自动生成 MQ 消费者且注册为 Spring bean
+     *
+     * @param r        Reflections 对象
+     * @param registry BeanDefinitionRegistry
+     */
+    private static void registerMqConsumer(Reflections r, BeanDefinitionRegistry registry) {
         // key: domainType value: MqConsumer
         Map<Class<?>, MqConsumer<?>> consumerByDomainType = Maps.newHashMap();
         r.getSubTypesOf(MqConsumer.class)
@@ -69,6 +88,32 @@ public class MqConsumerRegister {
                         , mqConsumer, registry);
             }
         }
+    }
+
+    /**
+     * 自动实现自定的 RedisRepository 接口的实现类且注册为 Spring bean
+     *
+     * @param r        Reflections 对象
+     * @param registry BeanDefinitionRegistry
+     */
+    private static void registerRedisRepository(Reflections r, BeanDefinitionRegistry registry) {
+        r.getSubTypesOf(RedisRepository.class)
+                .forEach(redisRepositoryClass -> {
+                    Type[] genericInterfaces = redisRepositoryClass.getGenericInterfaces();
+                    for (Type genericInterface : genericInterfaces) {
+                        ParameterizedType p = (ParameterizedType) genericInterface;
+                        if (!Objects.equals(p.getRawType(), RedisRepository.class)
+                                || Objects.equals(redisRepositoryClass, SimpleRedisRepository.class)) {
+                            continue;
+                        }
+                        Class<?> domainType = (Class<?>) p.getActualTypeArguments()[0];
+                        BeanDefinition beanDefinition = new AnnotatedGenericBeanDefinition(
+                                JavassistBeanGenerator.generateRedisRepository(redisRepositoryClass, domainType));
+                        BeanDefinitionHolder bh = new BeanDefinitionHolder(beanDefinition,
+                                redisRepositoryClass.getName());
+                        BeanDefinitionReaderUtils.registerBeanDefinition(bh, registry);
+                    }
+                });
     }
 
     private static void register(Class<?> mqConsumerBeanClass, MqConsumer<?> mqConsumer,

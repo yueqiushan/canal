@@ -32,7 +32,9 @@ public class HandleSubscriber extends SubmissionPublisher<ContextWrapper> implem
 
     @Override
     public void onNext(ContextWrapper item) {
-        log.info("{} Handle batchId: {}", config.name, item.getMessageWrapper().getBatchId());
+        if (item.getMessageWrapper().getAllRawRowDataCount() > 0) {
+            log.info("{} Handle batchId: {}", config.name, item.getMessageWrapper().getBatchId());
+        }
         if (!config.skip) {
             try {
                 config.handler.handle(item.getMessageWrapper());

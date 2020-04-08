@@ -26,8 +26,7 @@ public class CanalConfiguration implements ImportBeanDefinitionRegistrar {
         // 注册 CanalConfig
         // 获取 EnableCanal
         // 扫描 CanalEntity
-        // 生成 RedisRepository 实现类
-        // 生成 MQ 消费者类
+        // 注入 MQ 消费者、RedisRepository 实现类
         // 注册 OtterRunner
 
         registry.registerBeanDefinition(App.class.getName(), new AnnotatedGenericBeanDefinition(App.class));
@@ -45,9 +44,7 @@ public class CanalConfiguration implements ImportBeanDefinitionRegistrar {
 
         CanalEntityMetadataCache.from(r);
 
-        RedisRepositoryRegister.registry(r, registry);
-
-        MqConsumerRegister.registry(r, registry);
+        BeanRegistry.register(r, registry);
 
         registry.registerBeanDefinition(CanalRunner.class.getName(), new RootBeanDefinition(CanalRunner.class));
     }

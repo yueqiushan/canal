@@ -72,8 +72,11 @@ public class MessageHandler implements Handler<MessageWrapper> {
                 throw new HandleException(e);
             }
         }
-        log.info("{} Consume batchId: {}, rowDataCount: {}({}), time: {}ms", config.name, messageWrapper.getBatchId(),
-                rowChangeDataCount, messageWrapper.getAllRawRowDataCount(), System.currentTimeMillis() - l);
+        if (messageWrapper.getAllRawRowDataCount() > 0) {
+            log.info("{} Consume batchId: {}, rowDataCount: {}({}), time: {}ms", config.name,
+                    messageWrapper.getBatchId(),
+                    rowChangeDataCount, messageWrapper.getAllRawRowDataCount(), System.currentTimeMillis() - l);
+        }
     }
 
     private int doHandle(List<EntryWrapper> entryWrapperList, long batchId) {
