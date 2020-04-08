@@ -27,6 +27,10 @@ import static com.alibaba.otter.canal.protocol.CanalEntry.EventType.*;
  */
 @Slf4j
 public class SimpleOtter implements Otter {
+    /**
+     * 过滤的事件类型
+     */
+    private static final List<CanalEntry.EventType> EVENT_TYPES = Arrays.asList(INSERT, DELETE, UPDATE, ERASE);
     private volatile boolean running;
     private ConnectConfig connectConfig;
     private SubmissionPublisher<Context> publisher;
@@ -107,10 +111,5 @@ public class SimpleOtter implements Otter {
                 .filter(entry -> EVENT_TYPES.contains(entry.getHeader().getEventType()))
                 .collect(Collectors.toList());
     }
-
-    /**
-     * 过滤的事件类型
-     */
-    private static final List<CanalEntry.EventType> EVENT_TYPES = Arrays.asList(INSERT, DELETE, UPDATE, ERASE);
 
 }

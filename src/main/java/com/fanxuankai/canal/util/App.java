@@ -19,17 +19,17 @@ public class App implements ApplicationContextAware, InitializingBean {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        App.applicationContext = applicationContext;
-    }
-
     public static ApplicationContext getContext() {
         return applicationContext;
     }
 
     public static RedisTemplate<String, Object> getRedisTemplate() {
         return redisTemplate1;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        App.applicationContext = applicationContext;
     }
 
     @Override

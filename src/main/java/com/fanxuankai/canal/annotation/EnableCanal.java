@@ -19,7 +19,7 @@ public @interface EnableCanal {
 
     /**
      * 应用名
-     * Canal 不支持多客户端, 一个 Canal 实例一个连接
+     * Canal 不支持多客户端, 一个 Canal 实例一个链接
      */
     String name();
 

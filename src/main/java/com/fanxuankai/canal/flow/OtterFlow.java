@@ -7,7 +7,7 @@ public class OtterFlow {
     /**
      * 创建流化的 Otter 实例
      *
-     * @param connectConfig          canal 连接配置
+     * @param connectConfig          canal 链接配置
      * @param handleSubscriberConfig 处理订阅者配置
      * @return Otter
      */

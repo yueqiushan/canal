@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Canal 连接配置文件
+ * Canal 链接配置文件
  *
  * @author fanxuankai
  */

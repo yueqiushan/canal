@@ -44,7 +44,7 @@ public class CanalConfiguration implements ImportBeanDefinitionRegistrar {
 
         CanalEntityMetadataCache.from(r);
 
-        BeanRegistry.register(r, registry);
+        BeanRegistry.registerWith(r, registry);
 
         registry.registerBeanDefinition(CanalRunner.class.getName(), new RootBeanDefinition(CanalRunner.class));
     }

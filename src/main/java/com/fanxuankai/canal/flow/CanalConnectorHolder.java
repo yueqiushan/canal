@@ -12,7 +12,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Canal 连接工具类, 线程隔离
+ * Canal 链接工具类, 线程隔离
  *
  * @author fanxuankai
  */
@@ -20,17 +20,16 @@ import java.util.concurrent.TimeUnit;
 public class CanalConnectorHolder {
 
     /**
-     * 连接实例
+     * 默认重试次数
+     */
+    private static final int DEFAULT_RETRY_COUNT = 20;
+    /**
+     * 链接实例
      */
     private static ThreadLocal<CanalConnector> connectorThreadLocal = new ThreadLocal<>();
 
     /**
-     * 默认重试次数
-     */
-    private static final int DEFAULT_RETRY_COUNT = 20;
-
-    /**
-     * 创建连接
+     * 创建链接
      *
      * @param connectConfig 配置文件
      */

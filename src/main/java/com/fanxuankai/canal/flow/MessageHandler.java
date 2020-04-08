@@ -50,7 +50,7 @@ public class MessageHandler implements Handler<MessageWrapper> {
     public MessageHandler(Config config) {
         this.config = config;
         this.logFileOffsetTag = RedisUtils.customKey(RedisKeyPrefix.SERVICE_CACHE,
-                EnableCanalAttributes.getName() + SEPARATOR + config.logfileOffsetPrefix + SEPARATOR + LOGFILE_OFFSET);
+                EnableCanalAttributes.getName() + SEPARATOR + config.name + SEPARATOR + LOGFILE_OFFSET);
         this.redisTemplate = App.getRedisTemplate();
         this.canalConfig = App.getContext().getBean(CanalConfig.class);
     }
@@ -96,7 +96,7 @@ public class MessageHandler implements Handler<MessageWrapper> {
                 }
                 long time = consume(consumer, process, entryWrapper);
                 rowChangeDataCount += entryWrapper.getAllRowDataList().size();
-                log(entryWrapper, consumer, batchId, time);
+                log(entryWrapper, batchId, time);
             }
         }
         return rowChangeDataCount;
@@ -143,7 +143,7 @@ public class MessageHandler implements Handler<MessageWrapper> {
                 MessageConsumer consumer = entryWrapperProcess.consumer;
                 long time = consume(consumer, process, entryWrapper);
                 rowChangeDataCount += entryWrapper.getAllRowDataList().size();
-                log(entryWrapper, consumer, batchId, time);
+                log(entryWrapper, batchId, time);
             }
         }
         return rowChangeDataCount;
@@ -198,7 +198,7 @@ public class MessageHandler implements Handler<MessageWrapper> {
         long logfileOffset = entryWrapper.getLogfileOffset();
         if (existsLogfileOffset(logfileName, logfileOffset)) {
             ExistsLogfileOffset existsLogfileOffset = ExistsLogfileOffset.builder()
-                    .name(config.logfileOffsetPrefix)
+                    .name(config.name)
                     .batchId(batchId)
                     .schema(entryWrapper.getSchemaName())
                     .table(entryWrapper.getTableName())
@@ -211,10 +211,10 @@ public class MessageHandler implements Handler<MessageWrapper> {
         return false;
     }
 
-    private void log(EntryWrapper entryWrapper, MessageConsumer consumer, long batchId, long time) {
+    private void log(EntryWrapper entryWrapper, long batchId, long time) {
         if (Objects.equals(canalConfig.getShowLog(), Boolean.TRUE)) {
             MessageHandlerLogger.asyncLog(MessageHandlerLogger.LogInfo.builder()
-                    .clazz(consumer.getClass())
+                    .name(config.name)
                     .entryWrapper(entryWrapper)
                     .batchId(batchId)
                     .time(time)
@@ -238,7 +238,6 @@ public class MessageHandler implements Handler<MessageWrapper> {
     @Builder
     public static class Config {
         private String name;
-        private String logfileOffsetPrefix;
         private Map<CanalEntry.EventType, MessageConsumer> consumerMap;
     }
 

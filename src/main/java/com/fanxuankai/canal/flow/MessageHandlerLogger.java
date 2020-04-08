@@ -27,24 +27,21 @@ public class MessageHandlerLogger {
     public static void asyncLog(LogInfo logInfo) {
         ForkJoinPool.commonPool().execute(() -> {
             EntryWrapper entryWrapper = logInfo.entryWrapper;
-            log.info(JSON.toJSONString(LogRowChange.builder()
-                    .handler(logInfo.clazz.getName())
+            LogRowChange logRowChange = LogRowChange.builder()
+                    .name(logInfo.name)
                     .batchId(logInfo.batchId)
-                    .file(entryWrapper.getLogfileName())
-                    .offset(entryWrapper.getLogfileOffset())
-                    .schema(entryWrapper.getSchemaName())
-                    .table(entryWrapper.getTableName())
-                    .eventType(entryWrapper.getEventType())
-                    .count(entryWrapper.getAllRowDataList().size())
                     .time(logInfo.time)
-                    .build()));
+                    .entryWrapper(entryWrapper)
+                    .build();
             CanalConfig canalConfig = App.getContext().getBean(CanalConfig.class);
             if (Objects.equals(canalConfig.getShowRowChange(), Boolean.TRUE)) {
                 List<List<LogColumn>> list = entryWrapper.getAllRowDataList().stream()
                         .map(o -> logColumns(o, entryWrapper.getEventType()))
                         .collect(Collectors.toList());
-                log.info(JSON.toJSONString(list,
+                log.info("RowChange: {}\n{}", logRowChange, JSON.toJSONString(list,
                         Objects.equals(canalConfig.getFormatRowChangeLog(), Boolean.TRUE)));
+            } else {
+                log.info("RowChange: {}", logRowChange);
             }
         });
     }
@@ -77,24 +74,27 @@ public class MessageHandlerLogger {
 
     @Builder
     public static class LogInfo {
-        private Class<?> clazz;
+        private String name;
         private EntryWrapper entryWrapper;
         private long batchId;
         private long time;
     }
 
     @Builder
-    @Getter
     private static class LogRowChange {
-        private String handler;
+        private String name;
         private Long batchId;
-        private String file;
-        private Long offset;
-        private String schema;
-        private String table;
-        private CanalEntry.EventType eventType;
-        private Integer count;
         private Long time;
+
+        private EntryWrapper entryWrapper;
+
+        @Override
+        public String toString() {
+            return String.format("%s %s.%s %s.%s.%s, batchId: %s, count: %s, time: %sms",
+                    name, entryWrapper.getLogfileName(),
+                    entryWrapper.getLogfileOffset(), entryWrapper.getSchemaName(), entryWrapper.getTableName(),
+                    entryWrapper.getEventType(), batchId, entryWrapper.getRawRowDataCount(), time);
+        }
     }
 
     @Builder

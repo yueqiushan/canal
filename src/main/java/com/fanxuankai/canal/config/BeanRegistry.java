@@ -37,7 +37,7 @@ public class BeanRegistry {
      * @param r        Reflections 对象
      * @param registry BeanDefinitionRegistry
      */
-    public static void register(Reflections r, BeanDefinitionRegistry registry) {
+    public static void registerWith(Reflections r, BeanDefinitionRegistry registry) {
         registerMqConsumer(r, registry);
         registerRedisRepository(r, registry);
     }
