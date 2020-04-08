@@ -10,23 +10,29 @@ public interface MqConsumer<T> {
     /**
      * 增
      *
-     * @param entity 新增的数据
+     * @param t 新增的数据
      */
-    void insert(T entity);
+    default void insert(T t) {
+
+    }
 
     /**
      * 改
      *
-     * @param oldEntity 修改前数据
-     * @param newEntity 修改后数据
+     * @param before 修改前数据
+     * @param after  修改后数据
      */
-    void update(T oldEntity, T newEntity);
+    default void update(T before, T after) {
+
+    }
 
     /**
      * 删
      *
-     * @param entity 删除的数据
+     * @param t 删除的数据
      */
-    void delete(T entity);
+    default void delete(T t) {
+
+    }
 
 }
