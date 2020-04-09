@@ -12,6 +12,7 @@ import com.fanxuankai.canal.redis.SimpleRedisRepository;
 import com.fanxuankai.canal.util.JavassistBeanGenerator;
 import com.fanxuankai.canal.util.QueueNameUtils;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -25,10 +26,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author fanxuankai
  */
+@SuppressWarnings("rawtypes")
+@Slf4j
 public class BeanRegistry {
 
     /**
@@ -55,23 +59,26 @@ public class BeanRegistry {
     private static void registerMqConsumer(Reflections r, BeanDefinitionRegistry registry) {
         // key: domainType value: MqConsumer
         Map<Class<?>, MqConsumer<?>> consumerByDomainType = Maps.newHashMap();
-        r.getSubTypesOf(MqConsumer.class)
-                .forEach(mqConsumerClass -> {
-                    Type[] genericInterfaces = mqConsumerClass.getGenericInterfaces();
-                    for (Type genericInterface : genericInterfaces) {
-                        ParameterizedType p = (ParameterizedType) genericInterface;
-                        if (!Objects.equals(p.getRawType(), MqConsumer.class)) {
-                            continue;
-                        }
-                        Class<?> actualTypeArgument = (Class<?>) p.getActualTypeArguments()[0];
-                        try {
-                            consumerByDomainType.put(actualTypeArgument,
-                                    mqConsumerClass.getConstructor().newInstance());
-                        } catch (Exception e) {
-                            throw new RuntimeException("MqConsumer 无空构造器");
-                        }
-                    }
-                });
+        long l = System.currentTimeMillis();
+        Set<Class<? extends MqConsumer>> mqConsumers = r.getSubTypesOf(MqConsumer.class);
+        log.info("Finished MqConsumer scanning in {}ms. Found {} MqConsumers.", System.currentTimeMillis() - l,
+                mqConsumers.size());
+        mqConsumers.forEach(mqConsumerClass -> {
+            Type[] genericInterfaces = mqConsumerClass.getGenericInterfaces();
+            for (Type genericInterface : genericInterfaces) {
+                ParameterizedType p = (ParameterizedType) genericInterface;
+                if (!Objects.equals(p.getRawType(), MqConsumer.class)) {
+                    continue;
+                }
+                Class<?> actualTypeArgument = (Class<?>) p.getActualTypeArguments()[0];
+                try {
+                    consumerByDomainType.put(actualTypeArgument,
+                            mqConsumerClass.getConstructor().newInstance());
+                } catch (Exception e) {
+                    throw new RuntimeException("MqConsumer 无空构造器");
+                }
+            }
+        });
         for (CanalEntityMetadata metadata : CanalEntityMetadataCache.getAllMqMetadata()) {
             TableMetadata tableMetadata = metadata.getTableMetadata();
             Class<?> domainType = metadata.getDomainType();
@@ -101,23 +108,26 @@ public class BeanRegistry {
      * @param registry BeanDefinitionRegistry
      */
     private static void registerRedisRepository(Reflections r, BeanDefinitionRegistry registry) {
-        r.getSubTypesOf(RedisRepository.class)
-                .forEach(redisRepositoryClass -> {
-                    Type[] genericInterfaces = redisRepositoryClass.getGenericInterfaces();
-                    for (Type genericInterface : genericInterfaces) {
-                        ParameterizedType p = (ParameterizedType) genericInterface;
-                        if (!Objects.equals(p.getRawType(), RedisRepository.class)
-                                || Objects.equals(redisRepositoryClass, SimpleRedisRepository.class)) {
-                            continue;
-                        }
-                        Class<?> domainType = (Class<?>) p.getActualTypeArguments()[0];
-                        BeanDefinition beanDefinition = new AnnotatedGenericBeanDefinition(
-                                JavassistBeanGenerator.generateRedisRepository(redisRepositoryClass, domainType));
-                        BeanDefinitionHolder bh = new BeanDefinitionHolder(beanDefinition,
-                                redisRepositoryClass.getName());
-                        BeanDefinitionReaderUtils.registerBeanDefinition(bh, registry);
-                    }
-                });
+        long l = System.currentTimeMillis();
+        Set<Class<? extends RedisRepository>> redisRepositories = r.getSubTypesOf(RedisRepository.class);
+        log.info("Finished Redis Repository scanning in {}ms. Found {} Redis Repository interfaces.",
+                System.currentTimeMillis() - l, redisRepositories.size());
+        redisRepositories.forEach(redisRepositoryClass -> {
+            Type[] genericInterfaces = redisRepositoryClass.getGenericInterfaces();
+            for (Type genericInterface : genericInterfaces) {
+                ParameterizedType p = (ParameterizedType) genericInterface;
+                if (!Objects.equals(p.getRawType(), RedisRepository.class)
+                        || Objects.equals(redisRepositoryClass, SimpleRedisRepository.class)) {
+                    continue;
+                }
+                Class<?> domainType = (Class<?>) p.getActualTypeArguments()[0];
+                BeanDefinition beanDefinition = new AnnotatedGenericBeanDefinition(
+                        JavassistBeanGenerator.generateRedisRepository(redisRepositoryClass, domainType));
+                BeanDefinitionHolder bh = new BeanDefinitionHolder(beanDefinition,
+                        redisRepositoryClass.getName());
+                BeanDefinitionReaderUtils.registerBeanDefinition(bh, registry);
+            }
+        });
     }
 
     private static void register(Class<?> mqConsumerBeanClass, MqConsumer<?> mqConsumer,

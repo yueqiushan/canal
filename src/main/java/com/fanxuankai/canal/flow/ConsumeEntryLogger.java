@@ -22,7 +22,7 @@ import static com.alibaba.otter.canal.protocol.CanalEntry.EventType.*;
  * @author fanxuankai
  */
 @Slf4j
-public class MessageHandlerLogger {
+public class ConsumeEntryLogger {
 
     public static void asyncLog(LogInfo logInfo) {
         ForkJoinPool.commonPool().execute(() -> {
@@ -38,10 +38,10 @@ public class MessageHandlerLogger {
                 List<List<LogColumn>> list = entryWrapper.getAllRowDataList().stream()
                         .map(o -> logColumns(o, entryWrapper.getEventType()))
                         .collect(Collectors.toList());
-                log.info("RowChange: {}\n{}", logRowChange, JSON.toJSONString(list,
+                log.info("{}\n{}", logRowChange, JSON.toJSONString(list,
                         Objects.equals(canalConfig.getFormatRowChangeLog(), Boolean.TRUE)));
             } else {
-                log.info("RowChange: {}", logRowChange);
+                log.info("{}", logRowChange);
             }
         });
     }

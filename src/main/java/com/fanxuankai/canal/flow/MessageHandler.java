@@ -96,7 +96,7 @@ public class MessageHandler implements Handler<MessageWrapper> {
                 }
                 long time = consume(consumer, process, entryWrapper);
                 rowChangeDataCount += entryWrapper.getAllRowDataList().size();
-                log(entryWrapper, batchId, time);
+                logEntry(entryWrapper, batchId, time);
             }
         }
         return rowChangeDataCount;
@@ -143,7 +143,7 @@ public class MessageHandler implements Handler<MessageWrapper> {
                 MessageConsumer consumer = entryWrapperProcess.consumer;
                 long time = consume(consumer, process, entryWrapper);
                 rowChangeDataCount += entryWrapper.getAllRowDataList().size();
-                log(entryWrapper, batchId, time);
+                logEntry(entryWrapper, batchId, time);
             }
         }
         return rowChangeDataCount;
@@ -211,9 +211,9 @@ public class MessageHandler implements Handler<MessageWrapper> {
         return false;
     }
 
-    private void log(EntryWrapper entryWrapper, long batchId, long time) {
+    private void logEntry(EntryWrapper entryWrapper, long batchId, long time) {
         if (Objects.equals(canalConfig.getShowLog(), Boolean.TRUE)) {
-            MessageHandlerLogger.asyncLog(MessageHandlerLogger.LogInfo.builder()
+            ConsumeEntryLogger.asyncLog(ConsumeEntryLogger.LogInfo.builder()
                     .name(config.name)
                     .entryWrapper(entryWrapper)
                     .batchId(batchId)
