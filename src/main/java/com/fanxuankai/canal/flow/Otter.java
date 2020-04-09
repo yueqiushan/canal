@@ -1,7 +1,5 @@
 package com.fanxuankai.canal.flow;
 
-import java.util.concurrent.Flow;
-
 /**
  * Otter 客户端接口
  *
@@ -10,19 +8,19 @@ import java.util.concurrent.Flow;
 public interface Otter {
 
     /**
-     * 订阅
-     *
-     * @param subscriber 订阅者
-     */
-    void subscribe(Flow.Subscriber<Context> subscriber);
-
-    /**
-     * 开启数据同步
+     * 开启
      */
     void start();
 
     /**
-     * 停止数据同步
+     * 处理
+     *
+     * @param context 上下文
+     */
+    void process(Context context);
+
+    /**
+     * 停止
      */
     void stop();
 

@@ -1,6 +1,6 @@
 package com.fanxuankai.canal.annotation;
 
-import com.fanxuankai.canal.config.CanalConfiguration;
+import com.fanxuankai.canal.config.EnableCanalImportRegistrar;
 import com.fanxuankai.canal.mq.MqType;
 import org.springframework.context.annotation.Import;
 
@@ -14,14 +14,13 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Import(CanalConfiguration.class)
+@Import(EnableCanalImportRegistrar.class)
 public @interface EnableCanal {
 
     /**
-     * 应用名
-     * Canal 不支持多客户端, 一个 Canal 实例一个链接
+     * 应用名, 暂不支持集群, 集群时只开启一个服务.
      */
-    String name();
+    String applicationName();
 
     /**
      * 数据库名

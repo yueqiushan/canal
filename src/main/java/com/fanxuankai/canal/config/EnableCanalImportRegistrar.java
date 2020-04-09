@@ -2,37 +2,26 @@ package com.fanxuankai.canal.config;
 
 import com.fanxuankai.canal.metadata.CanalEntityMetadataCache;
 import com.fanxuankai.canal.metadata.EnableCanalAttributes;
-import com.fanxuankai.canal.util.App;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
-import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 
 /**
  * @author fanxuankai
  */
-public class CanalConfiguration implements ImportBeanDefinitionRegistrar {
+public class EnableCanalImportRegistrar implements ImportBeanDefinitionRegistrar {
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 
         // 主要步骤:
-        // ApplicationContext
-        // 注册 CanalConfig
-        // 获取 EnableCanal
-        // 扫描 CanalEntity
-        // 注入 MQ 消费者、RedisRepository 实现类
-        // 注册 OtterRunner
-
-        registry.registerBeanDefinition(App.class.getName(), new AnnotatedGenericBeanDefinition(App.class));
-
-        registry.registerBeanDefinition(CanalConfig.class.getName(),
-                new AnnotatedGenericBeanDefinition(CanalConfig.class));
+        // 获取 @EnableCanal 的属性
+        // 扫描 @CanalEntity
+        // 注测 MQ 消费者、RedisRepository 实现类
 
         EnableCanalAttributes.from(importingClassMetadata);
 
@@ -45,7 +34,5 @@ public class CanalConfiguration implements ImportBeanDefinitionRegistrar {
         CanalEntityMetadataCache.from(r);
 
         BeanRegistry.registerWith(r, registry);
-
-        registry.registerBeanDefinition(CanalRunner.class.getName(), new RootBeanDefinition(CanalRunner.class));
     }
 }

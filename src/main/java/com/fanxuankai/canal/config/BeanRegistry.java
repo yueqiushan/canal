@@ -38,8 +38,12 @@ public class BeanRegistry {
      * @param registry BeanDefinitionRegistry
      */
     public static void registerWith(Reflections r, BeanDefinitionRegistry registry) {
-        registerMqConsumer(r, registry);
-        registerRedisRepository(r, registry);
+        if (EnableCanalAttributes.isEnableRedis()) {
+            registerRedisRepository(r, registry);
+        }
+        if (EnableCanalAttributes.isEnableMq()) {
+            registerMqConsumer(r, registry);
+        }
     }
 
     /**

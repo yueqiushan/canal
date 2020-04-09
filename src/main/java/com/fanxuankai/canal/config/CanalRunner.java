@@ -4,17 +4,17 @@ import com.alibaba.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.fanxuankai.canal.constants.CommonConstants;
 import com.fanxuankai.canal.enums.RedisKeyPrefix;
 import com.fanxuankai.canal.flow.Otter;
-import com.fanxuankai.canal.flow.OtterFactory;
 import com.fanxuankai.canal.metadata.EnableCanalAttributes;
-import com.fanxuankai.canal.mq.MqType;
-import com.fanxuankai.canal.util.App;
 import com.fanxuankai.canal.util.RedisUtils;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -29,7 +29,9 @@ import static com.fanxuankai.canal.constants.RedisConstants.CANAL_RUNNING_TAG;
 @Slf4j
 public class CanalRunner implements ApplicationRunner {
 
+    @Resource
     private RedisTemplate<String, Object> redisTemplate;
+    @Resource
     private CanalConfig canalConfig;
 
     /**
@@ -40,21 +42,16 @@ public class CanalRunner implements ApplicationRunner {
      * canal running Redis.key
      */
     private String key;
-    /**
-     * 应用名
-     */
-    private String name;
 
+    private List<Otter> otters = Lists.newArrayList();
     private ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1,
             new ThreadFactoryBuilder().setNameFormat("CanalRunner").build());
     private ScheduledFuture<?> scheduledFuture;
 
     @Override
     public void run(ApplicationArguments args) {
-        redisTemplate = App.getRedisTemplate();
-        canalConfig = App.getContext().getBean(CanalConfig.class);
-        name = EnableCanalAttributes.getName();
-        key = RedisUtils.customKey(RedisKeyPrefix.SERVICE_CACHE, name + CommonConstants.SEPARATOR + CANAL_RUNNING_TAG);
+        key = RedisUtils.customKey(RedisKeyPrefix.SERVICE_CACHE,
+                EnableCanalAttributes.getApplicationName() + CommonConstants.SEPARATOR + CANAL_RUNNING_TAG);
 
         if (Objects.equals(canalConfig.getRetryStart(), Boolean.TRUE)) {
             scheduledFuture = scheduledExecutor.scheduleWithFixedDelay(() -> {
@@ -74,25 +71,17 @@ public class CanalRunner implements ApplicationRunner {
         }
         log.info("Canal 已启动, 设置标记: {}", key);
         shouldClearTagWhenExit = true;
-        if (EnableCanalAttributes.isEnableRedis()) {
-            OtterFactory.getRedisOtter().ifPresent(Otter::start);
-        }
-        if (EnableCanalAttributes.isEnableMq()) {
-            MqType type = EnableCanalAttributes.getMqType();
-            if (type == MqType.RABBIT_MQ) {
-                OtterFactory.getRabbitMqOtter().ifPresent(Otter::start);
-            } else if (type == MqType.XXL_MQ) {
-                OtterFactory.getXxlMqOtter().ifPresent(Otter::start);
-            }
-        }
+        otters = OtterFactory.getOtters();
+        otters.forEach(Otter::start);
         return true;
     }
 
     @PreDestroy
     public void preDestroy() {
+        otters.forEach(Otter::stop);
         if (shouldClearTagWhenExit) {
             redisTemplate.delete(key);
-            log.info("{} 清除标记: {}", name, key);
+            log.info("{} 清除标记: {}", EnableCanalAttributes.getApplicationName(), key);
         }
     }
 }

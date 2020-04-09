@@ -12,45 +12,36 @@ import org.springframework.util.CollectionUtils;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Flow;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.SubmissionPublisher;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.alibaba.otter.canal.protocol.CanalEntry.EventType.*;
 
 /**
- * Otter 客户端实现
+ * Otter 客户端抽象类
  *
  * @author fanxuankai
  */
 @Slf4j
-public class SimpleOtter implements Otter {
+public abstract class AbstractOtter implements Otter {
+
     /**
      * 过滤的事件类型
      */
     private static final List<CanalEntry.EventType> EVENT_TYPES = Arrays.asList(INSERT, DELETE, UPDATE, ERASE);
     private volatile boolean running;
     private ConnectConfig connectConfig;
-    private SubmissionPublisher<Context> publisher;
     private CanalConfig canalConfig;
 
-    public SimpleOtter(ConnectConfig connectConfig) {
+    public AbstractOtter(ConnectConfig connectConfig) {
         this.connectConfig = connectConfig;
-        this.publisher = new SubmissionPublisher<>();
         this.canalConfig = App.getContext().getBean(CanalConfig.class);
-    }
-
-    @Override
-    public void subscribe(Flow.Subscriber<Context> subscriber) {
-        publisher.subscribe(subscriber);
     }
 
     @Override
     public void stop() {
         this.running = false;
-        publisher.close();
     }
 
     @Override
@@ -76,7 +67,7 @@ public class SimpleOtter implements Otter {
                             if (!message.getEntries().isEmpty()) {
                                 log.info("{} Get batchId: {}", connectConfig.getSubscriberName(), batchId);
                             }
-                            publisher.submit(new Context(canalConnector, message));
+                            process(new Context(canalConnector, message));
                         }
                     } catch (CanalClientException e) {
                         log.error(String.format("%s 停止消费 %s", subscriberName, e.getLocalizedMessage()), e);

@@ -50,7 +50,7 @@ public class MessageHandler implements Handler<MessageWrapper> {
     public MessageHandler(Config config) {
         this.config = config;
         this.logFileOffsetTag = RedisUtils.customKey(RedisKeyPrefix.SERVICE_CACHE,
-                EnableCanalAttributes.getName() + SEPARATOR + config.name + SEPARATOR + LOGFILE_OFFSET);
+                EnableCanalAttributes.getApplicationName() + SEPARATOR + config.name + SEPARATOR + LOGFILE_OFFSET);
         this.redisTemplate = App.getRedisTemplate();
         this.canalConfig = App.getContext().getBean(CanalConfig.class);
     }

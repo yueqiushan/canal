@@ -1,7 +1,11 @@
 package com.fanxuankai.canal.flow;
 
-import lombok.Builder;
+import com.fanxuankai.canal.metadata.CanalEntityMetadata;
+import com.fanxuankai.canal.metadata.TableMetadata;
 import lombok.Getter;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Canal 链接配置文件
@@ -9,7 +13,6 @@ import lombok.Getter;
  * @author fanxuankai
  */
 @Getter
-@Builder
 public class ConnectConfig {
     /**
      * canal 实例名
@@ -25,4 +28,19 @@ public class ConnectConfig {
      * 订阅者
      */
     private String subscriberName;
+
+    public ConnectConfig(List<CanalEntityMetadata> canalEntityMetadataList,
+                         String instance, String subscriberName) {
+        this.instance = instance;
+        this.filter = filterString(canalEntityMetadataList.stream()
+                .map(CanalEntityMetadata::getTableMetadata)
+                .distinct()
+                .collect(Collectors.toList())
+        );
+        this.subscriberName = subscriberName;
+    }
+
+    private String filterString(List<TableMetadata> metadataList) {
+        return metadataList.stream().distinct().map(TableMetadata::toFilter).collect(Collectors.joining(","));
+    }
 }

@@ -2,14 +2,12 @@ package com.fanxuankai.canal.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * canal参数配置
  *
  * @author fanxuankai
  */
-@Configuration
 @ConfigurationProperties(prefix = "canal")
 @Data
 public class CanalConfig {
