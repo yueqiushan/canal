@@ -71,6 +71,14 @@ canal:
   #retry-start-interval-seconds = 300L;
 ```
 
+### 快速使用
+- 配置文件
+- SpringBoot 启动类标注 @EnableCanal
+- 数据库实体类标注 @CanalEntity
+- 创建 XXXRedisRepository 接口, 继承 RedisRepository<XXX>
+- 创建 MqConsumer<XXX> 的实现类
+- Done!
+
 ### 常见问题
 - 已有实例建立了 Canal 链接？
     - 清除 Redis 标记重启即可, key 的格式为 Canal.ServiceCache.服务名.CanalRunning
